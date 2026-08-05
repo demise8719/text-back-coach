@@ -6,7 +6,7 @@
 <title>CUPT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0b1420;
@@ -21,6 +21,28 @@
     --accent-deep:#2f7fe0;
     --accent-tint:#4a9eff1f;
     --warm:#ffb020;
+    --glow-1:#1c3a63;
+    --glow-2:#12314f;
+    --font-display:'Bricolage Grotesque',sans-serif;
+    --font-body:'Inter',sans-serif;
+  }
+  body.theme-woman{
+    --bg:#f6f1fb;
+    --bg-deep:#efe6f9;
+    --panel:#ffffff;
+    --panel-2:#f7f0fc;
+    --ink:#372a45;
+    --ink-soft:#6e5c80;
+    --muted:#a394b3;
+    --line:#e4d7f0;
+    --accent:#9b6fd1;
+    --accent-deep:#7d51b3;
+    --accent-tint:#9b6fd11f;
+    --warm:#e0a458;
+    --glow-1:#dcc4f2;
+    --glow-2:#e8d3f5;
+    --font-display:'Fraunces',serif;
+    --font-body:'Karla',sans-serif;
   }
   *{box-sizing:border-box;}
   @keyframes drift{
@@ -41,7 +63,7 @@
   }
   body{
     margin:0;
-    font-family:'Inter',sans-serif;
+    font-family:var(--font-body);
     background:var(--bg);
     color:var(--ink);
     display:flex;
@@ -50,6 +72,7 @@
     min-height:100vh;
     position:relative;
     overflow-x:hidden;
+    transition:background .3s ease, color .3s ease;
   }
   body::before, body::after{
     content:"";
@@ -62,23 +85,29 @@
   body::before{
     width:520px; height:420px;
     top:-160px; left:-120px;
-    background:radial-gradient(circle,#1c3a63,transparent 70%);
+    background:radial-gradient(circle,var(--glow-1),transparent 70%);
   }
   body::after{
     width:460px; height:400px;
     top:-80px; right:-160px;
-    background:radial-gradient(circle,#12314f,transparent 70%);
+    background:radial-gradient(circle,var(--glow-2),transparent 70%);
     animation-delay:-9s;
   }
   .app{
     width:100%;
     max-width:600px;
   }
+  .top-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
   .brand{
     display:flex;
     align-items:center;
     gap:13px;
-    margin-bottom:6px;
   }
   .mark{
     width:40px;
@@ -106,8 +135,8 @@
     z-index:1;
   }
   .wordmark{
-    font-family:'Bricolage Grotesque',sans-serif;
-    font-weight:800;
+    font-family:var(--font-display);
+    font-weight:700;
     font-size:29px;
     letter-spacing:-.01em;
     color:var(--ink);
@@ -269,7 +298,30 @@
     color:var(--muted);
     letter-spacing:.03em;
   }
-
+  .gender-toggle{
+    display:flex;
+    gap:2px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:999px;
+    padding:3px;
+  }
+  .gender-toggle button{
+    border:none;
+    background:transparent;
+    color:var(--muted);
+    font-family:var(--font-body);
+    font-size:12px;
+    font-weight:600;
+    padding:6px 13px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .gender-toggle button.active{
+    background:var(--accent);
+    color:#fff;
+  }
   @media (max-width: 480px){
     body{ padding:22px 14px 32px; }
     .wordmark{ font-size:25px; }
@@ -285,13 +337,19 @@
 <body>
 <div class="app">
   <header>
-    <div class="brand">
-      <span class="mark">
-        <span class="ring"></span>
-        <span class="ring ring2"></span>
-        <span class="core"></span>
-      </span>
-      <span class="wordmark">CUPT</span>
+    <div class="top-row">
+      <div class="brand">
+        <span class="mark">
+          <span class="ring"></span>
+          <span class="ring ring2"></span>
+          <span class="core"></span>
+        </span>
+        <span class="wordmark">CUPT</span>
+      </div>
+      <div class="gender-toggle" id="genderToggle">
+        <button type="button" data-gender="man">Man</button>
+        <button type="button" data-gender="woman">Woman</button>
+      </div>
     </div>
     <p class="tagline">signal read on what's actually happening</p>
     <p class="sub">Describe the situation &mdash; a text that's gone quiet, a date that ended weird, mixed signals, whatever it is &mdash; and get a straight read on what to do next.</p>
@@ -434,6 +492,23 @@ function findMatches(text){
   return scored.slice(0,2).map(s=>s.item);
 }
 
+function getGender(){
+  return localStorage.getItem("cupt_gender") || "man";
+}
+
+function applyGender(gender){
+  document.body.classList.toggle("theme-woman", gender === "woman");
+  document.querySelectorAll("#genderToggle button").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.gender === gender);
+  });
+  localStorage.setItem("cupt_gender", gender);
+}
+
+document.querySelectorAll("#genderToggle button").forEach(btn=>{
+  btn.addEventListener("click", ()=> applyGender(btn.dataset.gender));
+});
+applyGender(getGender());
+
 const thread = document.getElementById("thread");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
@@ -477,7 +552,11 @@ async function askClaude(userText, contextItems){
     `Situation: ${i.title}\nPrinciple: ${i.principle}\nAdvice: ${i.advice}`
   ).join("\n\n");
 
-  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach for anyone regardless of gender or who they're dating. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
+  const genderLine = getGender() === "woman"
+    ? "The user is a woman."
+    : "The user is a man.";
+
+  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
 
 Reference material:
 ${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations."}`;
