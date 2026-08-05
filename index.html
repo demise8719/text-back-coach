@@ -298,6 +298,12 @@
     color:var(--muted);
     letter-spacing:.03em;
   }
+  .toggles{
+    display:flex;
+    flex-direction:column;
+    align-items:flex-end;
+    gap:6px;
+  }
   .gender-toggle{
     display:flex;
     gap:2px;
@@ -346,19 +352,25 @@
         </span>
         <span class="wordmark">CUPT</span>
       </div>
-      <div class="gender-toggle" id="genderToggle">
-        <button type="button" data-gender="man">Man</button>
-        <button type="button" data-gender="woman">Woman</button>
+      <div class="toggles">
+        <div class="gender-toggle" id="genderToggle">
+          <button type="button" data-gender="man">Man</button>
+          <button type="button" data-gender="woman">Woman</button>
+        </div>
+        <div class="gender-toggle" id="langToggle">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="es">ES</button>
+        </div>
       </div>
     </div>
-    <p class="tagline">signal read on what's actually happening</p>
-    <p class="sub">Describe the situation &mdash; a text that's gone quiet, a date that ended weird, mixed signals, whatever it is &mdash; and get a straight read on what to do next.</p>
+    <p class="tagline" id="tagline">signal read on what's actually happening</p>
+    <p class="sub" id="subText">Describe the situation &mdash; a text that's gone quiet, a date that ended weird, mixed signals, whatever it is &mdash; and get a straight read on what to do next.</p>
   </header>
 
   <div class="chips" id="chips"></div>
 
   <div class="thread" id="thread">
-    <div class="msg bot"><span class="tag">CUPT</span>What's going on? Paste the situation or ask a question, like "they read my text 3 hours ago and haven't replied."</div>
+    <div class="msg bot"><span class="tag">CUPT</span><span id="greetingText">What's going on? Paste the situation or ask a question, like "they read my text 3 hours ago and haven't replied."</span></div>
   </div>
 
   <form id="form">
@@ -509,6 +521,61 @@ document.querySelectorAll("#genderToggle button").forEach(btn=>{
 });
 applyGender(getGender());
 
+const COPY = {
+  en: {
+    tagline: "signal read on what's actually happening",
+    sub: "Describe the situation — a text that's gone quiet, a date that ended weird, mixed signals, whatever it is — and get a straight read on what to do next.",
+    greeting: "What's going on? Paste the situation or ask a question, like \"they read my text 3 hours ago and haven't replied.\"",
+    placeholder: "e.g. they stopped responding after our first date",
+    chips: ["They stopped responding","Should I text again?","No reply after first date","Are we exclusive?"],
+    limitHit: (n)=> `You've hit today's question limit (${n}). Come back tomorrow, or if this is your app and you want to raise the limit, that's set in the code.`,
+    footer: (left, total)=> `CUPT is a prototype. ${left} of ${total} questions left today.`,
+    error: "Something went wrong reaching the model. Try again in a moment."
+  },
+  es: {
+    tagline: "una lectura clara de lo que está pasando",
+    sub: "Describe la situación — un mensaje que quedó en visto, una cita que terminó rara, señales confusas, lo que sea — y recibe una respuesta directa sobre qué hacer.",
+    greeting: "¿Qué está pasando? Cuéntame la situación o haz una pregunta, como \"leyó mi mensaje hace 3 horas y no ha respondido.\"",
+    placeholder: "ej. dejó de responder después de la primera cita",
+    chips: ["Dejó de responder","¿Le escribo otra vez?","No respondió tras la cita","¿Somos exclusivos?"],
+    limitHit: (n)=> `Llegaste al límite de preguntas de hoy (${n}). Vuelve mañana, o si esta es tu app y quieres subir el límite, se ajusta en el código.`,
+    footer: (left, total)=> `CUPT es un prototipo. Te quedan ${left} de ${total} preguntas hoy.`,
+    error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento."
+  }
+};
+
+function getLang(){
+  return localStorage.getItem("cupt_lang") || "en";
+}
+
+function applyLang(lang){
+  const c = COPY[lang];
+  document.getElementById("tagline").textContent = c.tagline;
+  document.getElementById("subText").textContent = c.sub;
+  document.getElementById("greetingText").textContent = c.greeting;
+  document.getElementById("input").placeholder = c.placeholder;
+
+  chipsWrap.innerHTML = "";
+  c.chips.forEach(text=>{
+    const b = document.createElement("button");
+    b.className = "chip";
+    b.type = "button";
+    b.textContent = text;
+    b.onclick = ()=>{ input.value = text; form.requestSubmit(); };
+    chipsWrap.appendChild(b);
+  });
+
+  document.querySelectorAll("#langToggle button").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.lang === lang);
+  });
+  localStorage.setItem("cupt_lang", lang);
+  updateFooter();
+}
+
+document.querySelectorAll("#langToggle button").forEach(btn=>{
+  btn.addEventListener("click", ()=> applyLang(btn.dataset.lang));
+});
+
 const thread = document.getElementById("thread");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
@@ -517,20 +584,10 @@ const chipsWrap = document.getElementById("chips");
 
 function updateFooter(){
   const left = Math.max(remainingToday(), 0);
-  document.getElementById("footerText").textContent =
-    "CUPT is a prototype. " + left + " of " + DAILY_LIMIT + " questions left today.";
+  document.getElementById("footerText").textContent = COPY[getLang()].footer(left, DAILY_LIMIT);
 }
-updateFooter();
 
-const starterChips = ["They stopped responding","Should I text again?","No reply after first date","Are we exclusive?"];
-starterChips.forEach(c=>{
-  const b = document.createElement("button");
-  b.className = "chip";
-  b.type = "button";
-  b.textContent = c;
-  b.onclick = ()=>{ input.value = c; form.requestSubmit(); };
-  chipsWrap.appendChild(b);
-});
+applyLang(getLang());
 
 function addMsg(text, who, tag){
   const div = document.createElement("div");
@@ -555,8 +612,11 @@ async function askClaude(userText, contextItems){
   const genderLine = getGender() === "woman"
     ? "The user is a woman."
     : "The user is a man.";
+  const langLine = getLang() === "es"
+    ? "Respond in natural, conversational Spanish."
+    : "Respond in English.";
 
-  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
+  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} ${langLine} Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
 
 Reference material:
 ${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations."}`;
@@ -576,7 +636,7 @@ form.addEventListener("submit", async (e)=>{
   if(!val) return;
 
   if(remainingToday() <= 0){
-    addMsg("You've hit today's question limit (" + DAILY_LIMIT + "). Come back tomorrow, or if this is your app and you want to raise the limit, that's set in the code.", "bot", "CUPT");
+    addMsg(COPY[getLang()].limitHit(DAILY_LIMIT), "bot", "CUPT");
     return;
   }
 
@@ -599,7 +659,7 @@ form.addEventListener("submit", async (e)=>{
     updateFooter();
   }catch(err){
     typing.remove();
-    addMsg("Something went wrong reaching the model. Try again in a moment.", "bot", "CUPT");
+    addMsg(COPY[getLang()].error, "bot", "CUPT");
   }
   sendBtn.disabled = false;
 });
