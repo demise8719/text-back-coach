@@ -17,6 +17,14 @@ function isRateLimited(ip) {
   return record.count > REQUESTS_PER_WINDOW;
 }
 
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "8mb"
+    }
+  }
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -27,11 +35,27 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Too many requests, try again later." });
   }
 
-  const { systemPrompt, userText } = req.body;
+  const { systemPrompt, userText, image } = req.body;
 
-  if (!userText) {
-    return res.status(400).json({ error: "Missing userText" });
+  if (!userText && !image) {
+    return res.status(400).json({ error: "Missing userText or image" });
   }
+
+  const content = [];
+  if (image && image.base64 && image.mediaType) {
+    content.push({
+      type: "image",
+      source: {
+        type: "base64",
+        media_type: image.mediaType,
+        data: image.base64
+      }
+    });
+  }
+  content.push({
+    type: "text",
+    text: userText || "Analyze this screenshot of a text conversation."
+  });
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -45,7 +69,7 @@ export default async function handler(req, res) {
         model: "claude-sonnet-4-6",
         max_tokens: 400,
         system: systemPrompt,
-        messages: [{ role: "user", content: userText }]
+        messages: [{ role: "user", content }]
       })
     });
 

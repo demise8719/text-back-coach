@@ -246,6 +246,48 @@
   }
   .typing span:nth-child(2){ animation-delay:.15s; }
   .typing span:nth-child(3){ animation-delay:.3s; }
+  button.attach{
+    width:44px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:border-color .15s ease, color .15s ease;
+    flex-shrink:0;
+  }
+  button.attach:hover{ border-color:var(--accent); color:var(--accent); }
+  button.attach svg{ width:19px; height:19px; }
+  .preview{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:8px 12px;
+    margin-top:12px;
+    font-size:13px;
+    color:var(--ink-soft);
+  }
+  .preview img{
+    width:36px;
+    height:36px;
+    object-fit:cover;
+    border-radius:6px;
+  }
+  .preview button{
+    margin-left:auto;
+    border:none;
+    background:none;
+    color:var(--muted);
+    font-size:18px;
+    cursor:pointer;
+    line-height:1;
+  }
   form{
     display:flex;
     gap:8px;
@@ -373,7 +415,17 @@
     <div class="msg bot"><span class="tag">CUPT</span><span id="greetingText">What's going on? Paste the situation or ask a question, like "they read my text 3 hours ago and haven't replied."</span></div>
   </div>
 
+  <div class="preview" id="preview" style="display:none;">
+    <img id="previewImg" alt="Screenshot preview">
+    <span id="previewLabel">Screenshot attached</span>
+    <button type="button" id="removePreview" aria-label="Remove">&times;</button>
+  </div>
+
   <form id="form">
+    <input type="file" id="fileInput" accept="image/*" style="display:none;">
+    <button type="button" class="attach" id="attachBtn" aria-label="Attach screenshot">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 12.5V7a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v10a4 4 0 0 0 4 4h6M15 9l-6 6M9 9l6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
     <input type="text" id="input" placeholder="e.g. they stopped responding after our first date" autocomplete="off">
     <button class="send" id="sendBtn" type="submit" aria-label="Send">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
@@ -581,6 +633,41 @@ const form = document.getElementById("form");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const chipsWrap = document.getElementById("chips");
+const fileInput = document.getElementById("fileInput");
+const attachBtn = document.getElementById("attachBtn");
+const preview = document.getElementById("preview");
+const previewImg = document.getElementById("previewImg");
+const removePreview = document.getElementById("removePreview");
+
+let attachedImage = null; // { base64, mediaType }
+
+attachBtn.addEventListener("click", ()=> fileInput.click());
+
+fileInput.addEventListener("change", ()=>{
+  const file = fileInput.files[0];
+  if(!file) return;
+  if(!file.type.startsWith("image/")){
+    fileInput.value = "";
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    const dataUrl = reader.result;
+    attachedImage = {
+      base64: dataUrl.split(",")[1],
+      mediaType: file.type
+    };
+    previewImg.src = dataUrl;
+    preview.style.display = "flex";
+  };
+  reader.readAsDataURL(file);
+});
+
+removePreview.addEventListener("click", ()=>{
+  attachedImage = null;
+  fileInput.value = "";
+  preview.style.display = "none";
+});
 
 function updateFooter(){
   const left = Math.max(remainingToday(), 0);
@@ -604,7 +691,7 @@ function addMsg(text, who, tag){
   return div;
 }
 
-async function askClaude(userText, contextItems){
+async function askClaude(userText, contextItems, image){
   const contextBlock = contextItems.map(i=>
     `Situation: ${i.title}\nPrinciple: ${i.principle}\nAdvice: ${i.advice}`
   ).join("\n\n");
@@ -615,8 +702,11 @@ async function askClaude(userText, contextItems){
   const langLine = getLang() === "es"
     ? "Respond in natural, conversational Spanish."
     : "Respond in English.";
+  const imageLine = image
+    ? "The user has attached a screenshot of a text conversation. Read it, then give a short read on the effort balance and tone between the two people, and a clear suggestion for what to send next or how to interpret it. Never mention or guess at real names you see in the screenshot."
+    : "";
 
-  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} ${langLine} Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
+  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} ${langLine} ${imageLine} Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
 
 Reference material:
 ${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations."}`;
@@ -624,7 +714,7 @@ ${contextBlock || "No specific match found, use general healthy communication an
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ systemPrompt, userText })
+    body: JSON.stringify({ systemPrompt, userText, image })
   });
   const data = await res.json();
   return data.reply || "Sorry, couldn't get a response that time, try rephrasing.";
@@ -633,15 +723,20 @@ ${contextBlock || "No specific match found, use general healthy communication an
 form.addEventListener("submit", async (e)=>{
   e.preventDefault();
   const val = input.value.trim();
-  if(!val) return;
+  const hasImage = !!attachedImage;
+  if(!val && !hasImage) return;
 
   if(remainingToday() <= 0){
     addMsg(COPY[getLang()].limitHit(DAILY_LIMIT), "bot", "CUPT");
     return;
   }
 
-  addMsg(val, "user");
+  addMsg(val || (getLang() === "es" ? "[captura adjunta]" : "[screenshot attached]"), "user");
   input.value = "";
+  const imageForRequest = attachedImage;
+  attachedImage = null;
+  fileInput.value = "";
+  preview.style.display = "none";
   sendBtn.disabled = true;
 
   const typing = document.createElement("div");
@@ -652,7 +747,7 @@ form.addEventListener("submit", async (e)=>{
 
   try{
     const matches = findMatches(val);
-    const reply = await askClaude(val, matches);
+    const reply = await askClaude(val, matches, imageForRequest);
     typing.remove();
     addMsg(reply, "bot", "CUPT");
     incrementUsage();
