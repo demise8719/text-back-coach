@@ -6,7 +6,7 @@
 <title>CUPT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0b1420;
@@ -23,18 +23,52 @@
     --warm:#ffb020;
   }
   *{box-sizing:border-box;}
+  @keyframes drift{
+    0%,100%{ transform:translate(0,0); }
+    50%{ transform:translate(-3%,2%); }
+  }
+  @keyframes radarPing{
+    0%{ transform:scale(1); opacity:.55; }
+    100%{ transform:scale(2.4); opacity:0; }
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform:translateY(6px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes dotPulse{
+    0%,80%,100%{ opacity:.25; transform:scale(.8); }
+    40%{ opacity:1; transform:scale(1); }
+  }
   body{
     margin:0;
     font-family:'Inter',sans-serif;
-    background:
-      radial-gradient(700px 360px at 10% -10%, #16294a, transparent),
-      radial-gradient(500px 300px at 100% 0%, #102035, transparent),
-      var(--bg);
+    background:var(--bg);
     color:var(--ink);
     display:flex;
     justify-content:center;
     padding:32px 16px 40px;
     min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+  body::before, body::after{
+    content:"";
+    position:fixed;
+    border-radius:50%;
+    filter:blur(60px);
+    z-index:-1;
+    animation:drift 18s ease-in-out infinite;
+  }
+  body::before{
+    width:520px; height:420px;
+    top:-160px; left:-120px;
+    background:radial-gradient(circle,#1c3a63,transparent 70%);
+  }
+  body::after{
+    width:460px; height:400px;
+    top:-80px; right:-160px;
+    background:radial-gradient(circle,#12314f,transparent 70%);
+    animation-delay:-9s;
   }
   .app{
     width:100%;
@@ -43,29 +77,44 @@
   .brand{
     display:flex;
     align-items:center;
-    gap:11px;
+    gap:13px;
     margin-bottom:6px;
   }
   .mark{
-    width:36px;
-    height:36px;
+    width:40px;
+    height:40px;
     flex-shrink:0;
-    border-radius:10px;
-    background:var(--panel-2);
-    border:1px solid var(--line);
+    position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
   }
+  .mark .ring{
+    position:absolute;
+    inset:0;
+    border-radius:50%;
+    border:1.5px solid var(--accent);
+    animation:radarPing 2.6s cubic-bezier(.2,.6,.4,1) infinite;
+  }
+  .mark .ring2{ animation-delay:1.3s; }
+  .mark .core{
+    width:14px;
+    height:14px;
+    border-radius:50%;
+    background:var(--accent);
+    box-shadow:0 0 14px 2px var(--accent-tint);
+    z-index:1;
+  }
   .wordmark{
-    font-family:'Space Grotesk',sans-serif;
-    font-weight:700;
-    font-size:23px;
-    letter-spacing:.01em;
+    font-family:'Bricolage Grotesque',sans-serif;
+    font-weight:800;
+    font-size:29px;
+    letter-spacing:-.01em;
     color:var(--ink);
   }
   header{
     margin-bottom:22px;
+    animation:fadeUp .5s ease both;
   }
   header p.tagline{
     font-family:'JetBrains Mono',monospace;
@@ -74,7 +123,7 @@
     letter-spacing:.06em;
     text-transform:uppercase;
     color:var(--accent);
-    margin:8px 0 12px;
+    margin:10px 0 12px;
   }
   header p.sub{
     margin:0;
@@ -88,6 +137,7 @@
     flex-wrap:wrap;
     gap:8px;
     margin:18px 0 20px;
+    animation:fadeUp .5s ease .05s both;
   }
   .chip{
     border:1px solid var(--line);
@@ -99,12 +149,13 @@
     padding:8px 13px;
     border-radius:8px;
     cursor:pointer;
-    transition:all .15s ease;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
   }
   .chip:hover{
     border-color:var(--accent);
     background:var(--accent-tint);
     color:var(--ink);
+    transform:translateY(-2px);
   }
   .thread{
     background:var(--panel);
@@ -117,6 +168,7 @@
     display:flex;
     flex-direction:column;
     gap:14px;
+    animation:fadeUp .5s ease .1s both;
   }
   .msg{
     max-width:82%;
@@ -125,6 +177,7 @@
     font-size:14.5px;
     line-height:1.6;
     white-space:pre-wrap;
+    animation:fadeUp .3s ease both;
   }
   .msg.user{
     align-self:flex-end;
@@ -151,11 +204,19 @@
   }
   .typing{
     align-self:flex-start;
-    color:var(--muted);
-    font-size:12.5px;
-    padding:2px 6px;
-    font-family:'JetBrains Mono',monospace;
+    display:flex;
+    align-items:center;
+    gap:4px;
+    padding:8px 6px;
   }
+  .typing span{
+    width:6px; height:6px;
+    border-radius:50%;
+    background:var(--accent);
+    animation:dotPulse 1.2s ease infinite;
+  }
+  .typing span:nth-child(2){ animation-delay:.15s; }
+  .typing span:nth-child(3){ animation-delay:.3s; }
   form{
     display:flex;
     gap:8px;
@@ -166,7 +227,7 @@
     padding:13px 16px;
     border-radius:10px;
     border:1px solid var(--line);
-    font-size:14.5px;
+    font-size:16px;
     font-family:'Inter',sans-serif;
     background:var(--panel);
     color:var(--ink);
@@ -186,9 +247,10 @@
     display:flex;
     align-items:center;
     justify-content:center;
-    transition:background .15s ease;
+    transition:background .15s ease, transform .1s ease;
   }
   button.send:hover{ background:var(--accent-deep); }
+  button.send:active{ transform:scale(.94); }
   button.send:disabled{
     opacity:.5;
     cursor:default;
@@ -207,6 +269,17 @@
     color:var(--muted);
     letter-spacing:.03em;
   }
+
+  @media (max-width: 480px){
+    body{ padding:22px 14px 32px; }
+    .wordmark{ font-size:25px; }
+    .mark{ width:36px; height:36px; }
+    header p.sub{ font-size:14px; }
+    .thread{ padding:16px; min-height:300px; }
+    .msg{ max-width:88%; font-size:14px; }
+    .chips{ gap:6px; }
+    .chip{ font-size:12px; padding:7px 11px; }
+  }
 </style>
 </head>
 <body>
@@ -214,11 +287,9 @@
   <header>
     <div class="brand">
       <span class="mark">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="7" stroke="var(--accent)" stroke-width="2"/>
-          <circle cx="12" cy="12" r="2" fill="var(--accent)"/>
-          <path d="M12 1V4M12 20V23M1 12H4M20 12H23" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
-        </svg>
+        <span class="ring"></span>
+        <span class="ring ring2"></span>
+        <span class="core"></span>
       </span>
       <span class="wordmark">CUPT</span>
     </div>
@@ -331,16 +402,6 @@ const KB = [
   }
 ];
 
-function findMatches(text){
-  const t = text.toLowerCase();
-  const scored = KB.map(item=>{
-    let score = 0;
-    item.keywords.forEach(k=>{ if(t.includes(k)) score += k.split(" ").length; });
-    return {item, score};
-  }).filter(s=>s.score>0).sort((a,b)=>b.score-a.score);
-  return scored.slice(0,2).map(s=>s.item);
-}
-
 const DAILY_LIMIT = 15;
 
 function getUsage(){
@@ -361,6 +422,16 @@ function incrementUsage(){
 
 function remainingToday(){
   return DAILY_LIMIT - getUsage().count;
+}
+
+function findMatches(text){
+  const t = text.toLowerCase();
+  const scored = KB.map(item=>{
+    let score = 0;
+    item.keywords.forEach(k=>{ if(t.includes(k)) score += k.split(" ").length; });
+    return {item, score};
+  }).filter(s=>s.score>0).sort((a,b)=>b.score-a.score);
+  return scored.slice(0,2).map(s=>s.item);
 }
 
 const thread = document.getElementById("thread");
@@ -436,7 +507,7 @@ form.addEventListener("submit", async (e)=>{
 
   const typing = document.createElement("div");
   typing.className = "typing";
-  typing.textContent = "cupt$ reading signal...";
+  typing.innerHTML = "<span></span><span></span><span></span>";
   thread.appendChild(typing);
   thread.scrollTop = thread.scrollHeight;
 
