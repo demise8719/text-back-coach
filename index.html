@@ -231,7 +231,7 @@
     </button>
   </form>
 
-  <footer>CUPT is a prototype. Nothing you type is saved or sent anywhere beyond this session.</footer>
+  <footer id="footerText">CUPT is a prototype. Nothing you type is saved or sent anywhere beyond this session.</footer>
 </div>
 
 <script>
@@ -332,11 +332,40 @@ function findMatches(text){
   return scored.slice(0,2).map(s=>s.item);
 }
 
+const DAILY_LIMIT = 15;
+
+function getUsage(){
+  const raw = localStorage.getItem("cupt_usage");
+  const today = new Date().toISOString().slice(0,10);
+  if(!raw) return { date: today, count: 0 };
+  const parsed = JSON.parse(raw);
+  if(parsed.date !== today) return { date: today, count: 0 };
+  return parsed;
+}
+
+function incrementUsage(){
+  const usage = getUsage();
+  usage.count += 1;
+  localStorage.setItem("cupt_usage", JSON.stringify(usage));
+  return usage.count;
+}
+
+function remainingToday(){
+  return DAILY_LIMIT - getUsage().count;
+}
+
 const thread = document.getElementById("thread");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
 const chipsWrap = document.getElementById("chips");
+
+function updateFooter(){
+  const left = Math.max(remainingToday(), 0);
+  document.getElementById("footerText").textContent =
+    "CUPT is a prototype. " + left + " of " + DAILY_LIMIT + " questions left today.";
+}
+updateFooter();
 
 const starterChips = ["They stopped responding","Should I text again?","No reply after first date","Are we exclusive?"];
 starterChips.forEach(c=>{
@@ -386,6 +415,12 @@ form.addEventListener("submit", async (e)=>{
   e.preventDefault();
   const val = input.value.trim();
   if(!val) return;
+
+  if(remainingToday() <= 0){
+    addMsg("You've hit today's question limit (" + DAILY_LIMIT + "). Come back tomorrow, or if this is your app and you want to raise the limit, that's set in the code.", "bot", "CUPT");
+    return;
+  }
+
   addMsg(val, "user");
   input.value = "";
   sendBtn.disabled = true;
@@ -401,6 +436,8 @@ form.addEventListener("submit", async (e)=>{
     const reply = await askClaude(val, matches);
     typing.remove();
     addMsg(reply, "bot", "CUPT");
+    incrementUsage();
+    updateFooter();
   }catch(err){
     typing.remove();
     addMsg("Something went wrong reaching the model. Try again in a moment.", "bot", "CUPT");
