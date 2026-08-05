@@ -9,17 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#121118;
-    --bg-deep:#0b0a10;
-    --panel:#1a1922;
-    --panel-2:#201f2a;
-    --ink:#f3f1f7;
-    --ink-soft:#b6b1c2;
-    --muted:#6f6a7d;
-    --line:#2b293650;
-    --accent:#7c6cf0;
-    --accent-deep:#5b4bd1;
-    --accent-tint:#7c6cf01f;
+    --bg:#0b1420;
+    --bg-deep:#060c14;
+    --panel:#101d2e;
+    --panel-2:#16263b;
+    --ink:#f5f8fc;
+    --ink-soft:#aebdd1;
+    --muted:#5f7188;
+    --line:#24374d80;
+    --accent:#4a9eff;
+    --accent-deep:#2f7fe0;
+    --accent-tint:#4a9eff1f;
     --warm:#ffb020;
   }
   *{box-sizing:border-box;}
@@ -27,8 +27,8 @@
     margin:0;
     font-family:'Inter',sans-serif;
     background:
-      radial-gradient(700px 360px at 10% -10%, #241f3a, transparent),
-      radial-gradient(500px 300px at 100% 0%, #1c2438, transparent),
+      radial-gradient(700px 360px at 10% -10%, #16294a, transparent),
+      radial-gradient(500px 300px at 100% 0%, #102035, transparent),
       var(--bg);
     color:var(--ink);
     display:flex;
@@ -201,6 +201,12 @@
     line-height:1.5;
     font-family:'JetBrains Mono',monospace;
   }
+  .credit{
+    margin:8px 0 0;
+    font-size:11px;
+    color:var(--muted);
+    letter-spacing:.03em;
+  }
 </style>
 </head>
 <body>
@@ -209,7 +215,9 @@
     <div class="brand">
       <span class="mark">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M2 12H7L9.5 5L14 19L16.5 12H22" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="12" cy="12" r="7" stroke="var(--accent)" stroke-width="2"/>
+          <circle cx="12" cy="12" r="2" fill="var(--accent)"/>
+          <path d="M12 1V4M12 20V23M1 12H4M20 12H23" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </span>
       <span class="wordmark">CUPT</span>
@@ -232,6 +240,7 @@
   </form>
 
   <footer id="footerText">CUPT is a prototype. Nothing you type is saved or sent anywhere beyond this session.</footer>
+  <p class="credit">Powered by PascualV</p>
 </div>
 
 <script>
