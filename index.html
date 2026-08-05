@@ -6,7 +6,7 @@
 <title>CUPT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Inter:wght@400;500;600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0b1420;
@@ -14,10 +14,11 @@
     --panel:#101d2e;
     --panel-2:#16263b;
     --ink:#f5f8fc;
-    --ink-soft:#aebdd1;
-    --muted:#5f7188;
+    --ink-soft:#c3d0e3;
+    --muted:#7188a3;
     --line:#24374d80;
     --accent:#4a9eff;
+    --accent-2:#5be8d8;
     --accent-deep:#2f7fe0;
     --accent-tint:#4a9eff1f;
     --warm:#ffb020;
@@ -32,10 +33,11 @@
     --panel:#ffffff;
     --panel-2:#f7f0fc;
     --ink:#372a45;
-    --ink-soft:#6e5c80;
-    --muted:#a394b3;
+    --ink-soft:#5e4c72;
+    --muted:#9885ab;
     --line:#e4d7f0;
     --accent:#9b6fd1;
+    --accent-2:#e88fc2;
     --accent-deep:#7d51b3;
     --accent-tint:#9b6fd11f;
     --warm:#e0a458;
@@ -125,21 +127,17 @@
     border:1.5px solid var(--accent);
     animation:radarPing 2.6s cubic-bezier(.2,.6,.4,1) infinite;
   }
-  .mark .ring2{ animation-delay:1.3s; }
+  .mark .ring2{ animation-delay:1.3s; border-color:var(--accent-2); }
   .mark .core{
     width:14px;
     height:14px;
     border-radius:50%;
-    background:var(--accent);
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
     box-shadow:0 0 14px 2px var(--accent-tint);
     z-index:1;
   }
   .wordmark{
-    font-family:var(--font-display);
-    font-weight:700;
-    font-size:29px;
-    letter-spacing:-.01em;
-    color:var(--ink);
+    display:block;
   }
   header{
     margin-bottom:22px;
@@ -151,7 +149,10 @@
     font-size:12.5px;
     letter-spacing:.06em;
     text-transform:uppercase;
-    color:var(--accent);
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
     margin:10px 0 12px;
   }
   header p.sub{
@@ -228,7 +229,10 @@
     font-size:10.5px;
     letter-spacing:.08em;
     text-transform:uppercase;
-    color:var(--accent);
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
     margin-bottom:6px;
   }
   .typing{
@@ -340,6 +344,13 @@
     color:var(--muted);
     letter-spacing:.03em;
   }
+  .privacy-note{
+    margin:10px 0 0;
+    font-size:11.5px;
+    color:var(--muted);
+    line-height:1.5;
+    max-width:52ch;
+  }
   .toggles{
     display:flex;
     flex-direction:column;
@@ -372,7 +383,7 @@
   }
   @media (max-width: 480px){
     body{ padding:22px 14px 32px; }
-    .wordmark{ font-size:25px; }
+    .wordmark{ width:78px; height:34px; }
     .mark{ width:36px; height:36px; }
     header p.sub{ font-size:14px; }
     .thread{ padding:16px; min-height:300px; }
@@ -392,7 +403,10 @@
           <span class="ring ring2"></span>
           <span class="core"></span>
         </span>
-        <span class="wordmark">CUPT</span>
+        <svg class="wordmark" width="92" height="40" viewBox="0 0 92 40" aria-label="CUPT">
+          <text x="0" y="30" font-family="Fraunces, serif" font-style="italic" font-weight="600" font-size="30" fill="var(--ink)">Cupt</text>
+          <path d="M79 17c-2-4-7-3-7 1c0 4 7 8 7 8s7-4 7-8c0-4-5-5-7-1z" fill="var(--accent)"/>
+        </svg>
       </div>
       <div class="toggles">
         <div class="gender-toggle" id="genderToggle">
@@ -431,6 +445,8 @@
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12L20 4L14 20L11 13L4 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
     </button>
   </form>
+
+  <p class="privacy-note" id="privacyNote"></p>
 
   <footer id="footerText">CUPT is a prototype. Nothing you type is saved or sent anywhere beyond this session.</footer>
   <p class="credit">Powered by PascualV</p>
@@ -566,33 +582,43 @@ function applyGender(gender){
     btn.classList.toggle("active", btn.dataset.gender === gender);
   });
   localStorage.setItem("cupt_gender", gender);
+  if(typeof applyLang === "function" && typeof chipsWrap !== "undefined"){
+    applyLang(getLang());
+  }
 }
 
 document.querySelectorAll("#genderToggle button").forEach(btn=>{
   btn.addEventListener("click", ()=> applyGender(btn.dataset.gender));
 });
-applyGender(getGender());
 
 const COPY = {
   en: {
     tagline: "signal read on what's actually happening",
-    sub: "Describe the situation — a text that's gone quiet, a date that ended weird, mixed signals, whatever it is — and get a straight read on what to do next.",
+    sub: "Describe the situation — or attach a screenshot of the conversation — and get a straight read on what to do next.",
     greeting: "What's going on? Paste the situation or ask a question, like \"they read my text 3 hours ago and haven't replied.\"",
     placeholder: "e.g. they stopped responding after our first date",
-    chips: ["They stopped responding","Should I text again?","No reply after first date","Are we exclusive?"],
+    chips: {
+      man: ["Should I text again?","What does this behavior actually mean?","Am I wasting my time here?","What's my next move?"],
+      woman: ["Why do I keep overthinking this?","Am I reading too much into it?","How do I stop checking my phone?","What's actually going on here?"]
+    },
     limitHit: (n)=> `You've hit today's question limit (${n}). Come back tomorrow, or if this is your app and you want to raise the limit, that's set in the code.`,
     footer: (left, total)=> `CUPT is a prototype. ${left} of ${total} questions left today.`,
-    error: "Something went wrong reaching the model. Try again in a moment."
+    error: "Something went wrong reaching the model. Try again in a moment.",
+    privacy: "Screenshots are sent only to generate your answer, then discarded — not stored or reviewed by anyone. Avoid attaching images that show someone else's full name, phone number, or other identifying info."
   },
   es: {
     tagline: "una lectura clara de lo que está pasando",
-    sub: "Describe la situación — un mensaje que quedó en visto, una cita que terminó rara, señales confusas, lo que sea — y recibe una respuesta directa sobre qué hacer.",
+    sub: "Describe la situación — o adjunta una captura de la conversación — y recibe una respuesta directa sobre qué hacer.",
     greeting: "¿Qué está pasando? Cuéntame la situación o haz una pregunta, como \"leyó mi mensaje hace 3 horas y no ha respondido.\"",
     placeholder: "ej. dejó de responder después de la primera cita",
-    chips: ["Dejó de responder","¿Le escribo otra vez?","No respondió tras la cita","¿Somos exclusivos?"],
+    chips: {
+      man: ["¿Le escribo otra vez?","¿Qué significa realmente esto?","¿Estoy perdiendo el tiempo?","¿Cuál es mi siguiente paso?"],
+      woman: ["¿Por qué le doy tantas vueltas?","¿Estoy exagerando esto?","¿Cómo dejo de revisar el celular?","¿Qué está pasando en realidad?"]
+    },
     limitHit: (n)=> `Llegaste al límite de preguntas de hoy (${n}). Vuelve mañana, o si esta es tu app y quieres subir el límite, se ajusta en el código.`,
     footer: (left, total)=> `CUPT es un prototipo. Te quedan ${left} de ${total} preguntas hoy.`,
-    error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento."
+    error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento.",
+    privacy: "Las capturas se envían solo para generar tu respuesta y luego se descartan — no se guardan ni las revisa nadie. Evita adjuntar imágenes que muestren el nombre completo, teléfono u otros datos de identificación de otra persona."
   }
 };
 
@@ -606,9 +632,11 @@ function applyLang(lang){
   document.getElementById("subText").textContent = c.sub;
   document.getElementById("greetingText").textContent = c.greeting;
   document.getElementById("input").placeholder = c.placeholder;
+  document.getElementById("privacyNote").textContent = c.privacy;
 
   chipsWrap.innerHTML = "";
-  c.chips.forEach(text=>{
+  const chipSet = c.chips[getGender()] || c.chips.man;
+  chipSet.forEach(text=>{
     const b = document.createElement("button");
     b.className = "chip";
     b.type = "button";
@@ -674,7 +702,7 @@ function updateFooter(){
   document.getElementById("footerText").textContent = COPY[getLang()].footer(left, DAILY_LIMIT);
 }
 
-applyLang(getLang());
+applyGender(getGender());
 
 function addMsg(text, who, tag){
   const div = document.createElement("div");
@@ -697,8 +725,8 @@ async function askClaude(userText, contextItems, image){
   ).join("\n\n");
 
   const genderLine = getGender() === "woman"
-    ? "The user is a woman."
-    : "The user is a man.";
+    ? "The user is a woman. Briefly acknowledge how the situation feels before giving the recommendation."
+    : "The user is a man. Get to the actual recommendation quickly, minimal preamble.";
   const langLine = getLang() === "es"
     ? "Respond in natural, conversational Spanish."
     : "Respond in English.";
