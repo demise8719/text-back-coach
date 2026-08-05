@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Text Back Coach</title>
+<style>
+  :root{
+    --ink:#241f1a;
+    --paper:#f7f3ec;
+    --panel:#ffffff;
+    --line:#e4dccd;
+    --accent:#8a4b32;
+    --accent-ink:#fff8f2;
+    --muted:#8a8175;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    display:flex;
+    justify-content:center;
+    padding:24px 16px;
+  }
+  .app{
+    width:100%;
+    max-width:640px;
+  }
+  header{
+    margin-bottom:20px;
+  }
+  header .eyebrow{
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    margin:0 0 6px;
+  }
+  header h1{
+    font-size:26px;
+    margin:0 0 6px;
+    font-weight:700;
+  }
+  header p{
+    margin:0;
+    color:var(--muted);
+    font-size:14px;
+    line-height:1.5;
+  }
+  .chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:16px 0 20px;
+  }
+  .chip{
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink);
+    font-size:12.5px;
+    padding:7px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .chip:hover{
+    border-color:var(--accent);
+    background:#fbeee6;
+  }
+  .thread{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:16px;
+    min-height:340px;
+    max-height:480px;
+    overflow-y:auto;
+    padding:18px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .msg{
+    max-width:82%;
+    padding:11px 14px;
+    border-radius:14px;
+    font-size:14.5px;
+    line-height:1.55;
+    white-space:pre-wrap;
+  }
+  .msg.user{
+    align-self:flex-end;
+    background:var(--accent);
+    color:var(--accent-ink);
+    border-bottom-right-radius:4px;
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background:#f2ede3;
+    color:var(--ink);
+    border-bottom-left-radius:4px;
+  }
+  .msg.bot .tag{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    margin-bottom:4px;
+    letter-spacing:.03em;
+    text-transform:uppercase;
+  }
+  .typing{
+    align-self:flex-start;
+    color:var(--muted);
+    font-size:13px;
+    padding:2px 4px;
+  }
+  form{
+    display:flex;
+    gap:8px;
+    margin-top:14px;
+  }
+  input[type=text]{
+    flex:1;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid var(--line);
+    font-size:14.5px;
+    background:var(--panel);
+    color:var(--ink);
+  }
+  input[type=text]:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  button.send{
+    padding:0 18px;
+    border-radius:12px;
+    border:none;
+    background:var(--accent);
+    color:var(--accent-ink);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.send:disabled{
+    opacity:.5;
+    cursor:default;
+  }
+  footer{
+    margin-top:14px;
+    font-size:12px;
+    color:var(--muted);
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <p class="eyebrow">Prototype</p>
+    <h1>Text Back Coach</h1>
+    <p>Ask about a real texting or dating situation &mdash; ghosting, mixed signals, follow-ups, whatever's on your screen right now. Answers are grounded in general communication principles, not any one person's script.</p>
+  </header>
+
+  <div class="chips" id="chips"></div>
+
+  <div class="thread" id="thread">
+    <div class="msg bot"><span class="tag">Coach</span>What's going on? Paste the situation or ask a question, like "she read my text 3 hours ago and hasn't replied."</div>
+  </div>
+
+  <form id="form">
+    <input type="text" id="input" placeholder="e.g. she stopped responding after our first date" autocomplete="off">
+    <button class="send" id="sendBtn" type="submit">Send</button>
+  </form>
+
+  <footer>Prototype only &mdash; runs entirely in this chat window, nothing is saved or sent anywhere else.</footer>
+</div>
+
+<script>
+const KB = [
+  {
+    id: "went-quiet",
+    title: "She went quiet mid-conversation",
+    keywords: ["stopped responding","stopped texting","went quiet","not replying","no reply","left on read","seen not replied","reading and not answering"],
+    principle: "One unanswered text is silence, not a verdict. People get busy, distracted, or need a beat before replying, especially early on. The mistake is treating normal delay like a five-alarm signal and either spiraling or overcorrecting with a flood of follow-up texts.",
+    advice: "Give it real space: 24 to 48 hours is normal before you follow up once, and only once. Skip the guilt-trip or 'wow ok' messages, they read as insecure and hand her the frame. If you do follow up, send something light and low-pressure that gives her an easy out, not a demand for explanation. If she replies normally afterward, drop it and move on like it never happened. If a second follow-up also gets nothing, that is your actual answer, and no third message will change it."
+  },
+  {
+    id: "slow-replies",
+    title: "Slow replies or mixed signals",
+    keywords: ["slow to reply","takes hours to text back","mixed signals","hot and cold","short replies","dry texts","one word answers"],
+    principle: "Effort level in texting is data. Someone genuinely interested tends to reply with some energy, even if timing is slow because of a busy schedule. Consistently one-word, flat answers over time are also data, just less flattering data.",
+    advice: "Instead of decoding one message, look at the pattern over your last 5 to 10 exchanges. Slow but warm and detailed replies usually means busy, not uninterested, keep going as normal. Fast but short and flat replies usually means low investment regardless of speed, don't escalate effort to compensate. Either way, stop matching her energy down. Keep your own texts confident and mildly playful, and let her effort tell you what's actually happening rather than asking her to explain it."
+  },
+  {
+    id: "no-reply-after-date",
+    title: "No response after a good first date",
+    keywords: ["first date","no text after date","ghosted after date","went well but no reply","date went well no response"],
+    principle: "A good date in person doesn't guarantee a good read afterward. Some people need to process alone, get busy the next day, or reassess distance from a text screen versus in-person chemistry, so a short delay isn't automatically a bad sign.",
+    advice: "Send one genuine, specific follow-up the same night or next morning, referencing something real from the date rather than a generic 'had fun.' Then wait. If a couple of days pass with no reply, one more light check-in is reasonable, but stop there. If two clear attempts get silence, that is a real answer worth respecting rather than fighting."
+  },
+  {
+    id: "cancels-flakes",
+    title: "She cancels or flakes on plans",
+    keywords: ["cancelled on me","flaked","bailed","rescheduled again","keeps cancelling","cancels plans"],
+    principle: "One cancellation with a real reason and an alternative offered is life happening. A pattern of cancellations, especially with vague excuses and no rescheduling effort, is someone telling you where you rank without saying it directly.",
+    advice: "First cancellation, respond easy and low-drama, and let her be the one to propose the next date if she's genuinely interested. If it happens again without her clearly initiating a reschedule, that's the real signal, not the wording of her excuse. Don't keep proposing new dates yourself after two flakes, that just confirms you'll wait indefinitely."
+  },
+  {
+    id: "short-low-effort",
+    title: "She gives short, low-effort answers",
+    keywords: ["one word answers","short answers","low effort texts","boring texts","not engaging"],
+    principle: "Short answers can mean genuinely busy, naturally low-text-energy as a communication style, or quietly low interest. Context and consistency across the relationship tell you which.",
+    advice: "Check if she asks you questions back or just answers yours. Reciprocity matters more than length. If she never asks anything about you or keeps conversations from progressing, stop carrying the conversation solo, send fewer, better texts and see if she steps up. If she does step up when you pull back slightly, effort was there and just needed room. If she doesn't, you have your answer without a confrontation."
+  },
+  {
+    id: "texting-to-date",
+    title: "Moving from texting to asking her out",
+    keywords: ["ask her out","move from texting to date","how to ask out","turn texting into a date"],
+    principle: "Texting is a warm-up, not the relationship. Prolonged texting without a plan often kills momentum, since attraction is easier to build and read in person or on a call than through a screen.",
+    advice: "Once there's decent back-and-forth rapport, usually within the first handful of exchanges, propose something specific rather than a vague 'we should hang out sometime.' A concrete day, time, and simple activity removes ambiguity and lets her give a real yes or no instead of a noncommittal maybe."
+  },
+  {
+    id: "friend-zone",
+    title: "Stuck in the friend zone",
+    keywords: ["friend zone","just friends","she sees me as a friend","only wants friendship"],
+    principle: "The friend zone usually isn't bad luck, it's a pattern of behavior that reads as safe and non-romantic, things like over-availability, no physical or flirtatious escalation, or acting like a supportive listener instead of a romantic interest.",
+    advice: "If you're already labeled 'just friends,' small tweaks won't shift it, only a clear change in how you show up will. That means less constant availability, actual flirtation instead of pure friendliness, and being willing to create some distance rather than proving your value through more effort and favors."
+  },
+  {
+    id: "silence-after-ask",
+    title: "Silence after asking her out",
+    keywords: ["asked her out no response","no answer after asking out","she never responded to date invite"],
+    principle: "A delayed or missing answer to a direct invitation is itself an answer, even without explicit words. People who want to say yes to a specific plan usually don't need days to reply.",
+    advice: "Give it a day or two of normal life, then send one neutral, no-pressure nudge like confirming timing, nothing apologetic or needy. If that also goes unanswered, take the silence at face value and stop pursuing that particular invite. Pursuing harder after a clear non-response usually damages your standing rather than helping it."
+  },
+  {
+    id: "jealousy-insecurity",
+    title: "Jealousy or insecurity showing up",
+    keywords: ["jealous","insecure","she's talking to other guys","worried she likes someone else","possessive"],
+    principle: "Early-stage jealousy is often more about your own uncertainty than about actual evidence of betrayal, especially before any exclusivity has been discussed. Acting on that uncertainty out loud usually creates the exact distance you're afraid of.",
+    advice: "Before saying anything, get honest with yourself about whether this is based on something she actually did or just your own anxiety about not being 'official.' If it's the latter, work on your own security first rather than interrogating her. If there's a real, specific behavior that concerns you, raise it once, calmly, as a direct conversation, not as accusations or guilt-tripping."
+  },
+  {
+    id: "dtr",
+    title: "Defining the relationship",
+    keywords: ["define the relationship","dtr","what are we","are we exclusive","official"],
+    principle: "This conversation goes best when it happens from a position of already having other things going on in your life, not from anxiety about losing her. Bringing it up out of insecurity tends to come across as pressure rather than confidence.",
+    advice: "Pick a calm, in-person or call moment, not a text thread, and state plainly what you want rather than asking her to guess or fishing for reassurance first. Something direct like sharing that you're enjoying this and want to be exclusive, then asking where she's at, works better than hinting around it for weeks."
+  },
+  {
+    id: "reignite-lull",
+    title: "Reigniting a conversation after a lull",
+    keywords: ["conversation died","how to restart texting","things got quiet","revive conversation"],
+    principle: "A stalled conversation usually died because it ran out of momentum, not because interest evaporated. Reviving it works better with something new to engage with rather than apologizing for the silence or asking 'are you still there.'",
+    advice: "Send something specific and a little unexpected, a callback to something she mentioned before, a genuine question, or plans for something concrete, rather than a generic 'hey' or 'you up?' Give her something worth responding to instead of just restarting small talk from zero."
+  },
+  {
+    id: "handling-rejection",
+    title: "Handling rejection well",
+    keywords: ["rejected","she said no","turned me down","she's not interested"],
+    principle: "How you handle a no is often more important long-term than the no itself, both for your own confidence and for how word travels in shared social circles.",
+    advice: "Accept it briefly and without arguing your case, over-explaining, or asking for reasons. A short, unbothered response protects your dignity and leaves the door open if things ever change, while pushing back or sulking closes it for good. Then genuinely move your attention elsewhere instead of dwelling on it."
+  }
+];
+
+function findMatches(text){
+  const t = text.toLowerCase();
+  const scored = KB.map(item=>{
+    let score = 0;
+    item.keywords.forEach(k=>{ if(t.includes(k)) score += k.split(" ").length; });
+    return {item, score};
+  }).filter(s=>s.score>0).sort((a,b)=>b.score-a.score);
+  return scored.slice(0,2).map(s=>s.item);
+}
+
+const thread = document.getElementById("thread");
+const form = document.getElementById("form");
+const input = document.getElementById("input");
+const sendBtn = document.getElementById("sendBtn");
+const chipsWrap = document.getElementById("chips");
+
+const starterChips = ["She stopped responding","Should I text again?","No reply after first date","Are we exclusive?"];
+starterChips.forEach(c=>{
+  const b = document.createElement("button");
+  b.className = "chip";
+  b.type = "button";
+  b.textContent = c;
+  b.onclick = ()=>{ input.value = c; form.requestSubmit(); };
+  chipsWrap.appendChild(b);
+});
+
+function addMsg(text, who, tag){
+  const div = document.createElement("div");
+  div.className = "msg " + who;
+  if(tag){
+    const t = document.createElement("span");
+    t.className = "tag";
+    t.textContent = tag;
+    div.appendChild(t);
+  }
+  div.appendChild(document.createTextNode(text));
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+  return div;
+}
+
+async function askClaude(userText, contextItems){
+  const contextBlock = contextItems.map(i=>
+    `Situation: ${i.title}\nPrinciple: ${i.principle}\nAdvice: ${i.advice}`
+  ).join("\n\n");
+
+  const systemPrompt = `You are a calm, direct dating and texting coach. Answer the user's specific situation in 3-5 short sentences, plain conversational language, no bullet lists, no headers. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
+
+Reference material:
+${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations."}`;
+
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ systemPrompt, userText })
+  });
+  const data = await res.json();
+  return data.reply || "Sorry, couldn't get a response that time, try rephrasing.";
+}
+
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+  const val = input.value.trim();
+  if(!val) return;
+  addMsg(val, "user");
+  input.value = "";
+  sendBtn.disabled = true;
+
+  const typing = document.createElement("div");
+  typing.className = "typing";
+  typing.textContent = "Coach is typing...";
+  thread.appendChild(typing);
+  thread.scrollTop = thread.scrollHeight;
+
+  try{
+    const matches = findMatches(val);
+    const reply = await askClaude(val, matches);
+    typing.remove();
+    addMsg(reply, "bot", "Coach");
+  }catch(err){
+    typing.remove();
+    addMsg("Something went wrong reaching the model. Try again in a moment.", "bot", "Coach");
+  }
+  sendBtn.disabled = false;
+});
+</script>
+</body>
+</html>
