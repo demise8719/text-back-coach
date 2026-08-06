@@ -6,22 +6,22 @@
 <title>CUPT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#15161a;
-    --bg-deep:#0d0e11;
-    --panel:#1d1f24;
-    --panel-2:#26282f;
-    --ink:#f3f2f0;
-    --ink-soft:#b9b8b5;
-    --muted:#78777a;
-    --line:#33353c;
-    --accent:#4d7ea8;
-    --accent-2:#9aa7b3;
-    --accent-deep:#3a6488;
-    --accent-tint:#4d7ea81f;
-    --warm:#c9a227;
+    --bg:#0e0f12;
+    --bg-deep:#08090b;
+    --panel:#24262d;
+    --panel-2:#2c2e36;
+    --ink:#f6f5f3;
+    --ink-soft:#c2c1be;
+    --muted:#84838a;
+    --line:#3a3c45;
+    --accent:#5b8fbd;
+    --accent-2:#a3b1bd;
+    --accent-deep:#4676a0;
+    --accent-tint:#5b8fbd22;
+    --warm:#d3ac2e;
     --glow-1:#22303f;
     --glow-2:#1a1c22;
     --font-display:'Space Grotesk',sans-serif;
@@ -119,17 +119,13 @@
     align-items:center;
     justify-content:center;
   }
-  .compass-needle{
-    transform-origin:12px 12px;
-    animation:needleWobble 3.4s ease-in-out infinite;
-  }
   .wordmark{
     display:block;
-    font-family:'Unbounded',sans-serif;
+    font-family:'Poppins',sans-serif;
     font-weight:800;
     font-size:36px;
-    letter-spacing:-.02em;
-    color:var(--ink);
+    letter-spacing:-.01em;
+    color:var(--ink) !important;
     line-height:1;
   }
   header{
@@ -177,7 +173,33 @@
     padding:12px 6px;
     border-radius:12px;
     cursor:pointer;
+    position:relative;
     transition:border-color .15s ease, transform .12s ease, box-shadow .15s ease;
+  }
+  .tool-tile::after{
+    content:attr(data-tooltip);
+    position:absolute;
+    bottom:calc(100% + 8px);
+    left:50%;
+    transform:translateX(-50%) translateY(4px);
+    background:var(--bg-deep);
+    color:var(--ink);
+    font-size:11px;
+    font-weight:500;
+    line-height:1.4;
+    padding:7px 10px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    width:150px;
+    text-align:left;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .15s ease, transform .15s ease;
+    z-index:5;
+  }
+  .tool-tile:hover::after{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
   }
   .tool-tile:hover{
     border-color:var(--accent);
@@ -476,13 +498,11 @@
     <div class="top-row">
       <div class="brand">
         <span class="mark">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="9" stroke="var(--ink-soft)" stroke-width="1.6"/>
-            <g class="compass-needle">
-              <path d="M12 12L16 8L14 14L12 12Z" fill="var(--accent)"/>
-              <path d="M12 12L8 16L10 10L12 12Z" fill="var(--accent-2)"/>
-            </g>
-            <circle cx="12" cy="12" r="1.3" fill="var(--ink)"/>
+          <svg width="30" height="30" viewBox="0 0 32 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6,8 C6,5 9,3 16,3 C23,3 26,5 26,8 L26,17 C26,23 21,27 17,28.5 L17,32 L13.5,28.5 C9,27 6,23 6,17 Z" stroke="#2c4a5c" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M9.5,15.5 A6,6 0 0 1 20,14" stroke="#c98a8a" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+            <path d="M12.5,16 V22 M16,15.5 V22.5 M19.5,16 V22" stroke="#2c4a5c" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M19,7 C18.3,5.6 16.3,5.8 16.1,7.4 C15.9,9 18.7,10.8 18.7,10.8 C18.7,10.8 21.7,9.4 21.9,7.7 C22.1,6 20.2,5.3 19,7Z" fill="#c98a8a"/>
           </svg>
         </span>
         <span class="wordmark">CUPT</span>
@@ -507,31 +527,31 @@
   </header>
 
   <div class="tools-grid" id="toolsRow">
-    <button type="button" class="tool-tile" data-tool="bridge">
+    <button type="button" class="tool-tile" data-tool="bridge" data-tooltip-key="bridge">
       <span class="tool-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12H20M20 12L15 7M20 12L15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
       <span data-tool-label="bridge">Bridge to Date</span>
     </button>
-    <button type="button" class="tool-tile" data-tool="vibe">
+    <button type="button" class="tool-tile" data-tool="vibe" data-tooltip-key="vibe">
       <span class="tool-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14L9 9L13 13L20 6M20 6H14M20 6V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
       <span data-tool-label="vibe">Vibe Check</span>
     </button>
-    <button type="button" class="tool-tile" data-tool="ghost">
+    <button type="button" class="tool-tile" data-tool="ghost" data-tooltip-key="ghost">
       <span class="tool-icon">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 5 5 5 9V19L8 17L10 19L12 17L14 19L16 17L19 19V9C19 5 16 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/></svg>
       </span>
       <span data-tool-label="ghost">Ghosting Check</span>
     </button>
-    <button type="button" class="tool-tile" data-tool="redflag">
+    <button type="button" class="tool-tile" data-tool="redflag" data-tooltip-key="redflag">
       <span class="tool-icon tool-icon-warn">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21V4M6 4H16L13.5 8L16 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
       <span data-tool-label="redflag">Red Flags</span>
     </button>
-    <button type="button" class="tool-tile" data-tool="boost">
+    <button type="button" class="tool-tile" data-tool="boost" data-tooltip-key="boost">
       <span class="tool-icon tool-icon-boost">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L4 14H11L10 22L20 9H13L13 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       </span>
@@ -752,6 +772,13 @@ const COPY = {
     privacy: "Screenshots are sent only to generate your answer, then discarded — not stored or reviewed by anyone. Avoid attaching images that show someone else's full name, phone number, or other identifying info.",
     clearBtn: "Clear conversation",
     toolLabels: { bridge: "Bridge to Date", vibe: "Vibe Check", ghost: "Ghosting Check", redflag: "Red Flags", boost: "Confidence Boost" },
+    toolTooltips: {
+      bridge: "Reads the conversation and tells you if now's a good moment to ask for a date or number.",
+      vibe: "Rates the other person's interest level as High, Medium, or Low.",
+      ghost: "Checks if the conversation is fading and gives a revival line if it is.",
+      redflag: "Scans for manipulation, love-bombing, or scam patterns.",
+      boost: "A quick, genuine pep talk — works with or without a screenshot."
+    },
     toolNeedsInput: "Attach a screenshot or describe the conversation first, then tap the tool again.",
     retryBtn: "Try again",
     copyBtn: "Copy",
@@ -769,6 +796,13 @@ const COPY = {
     privacy: "Las capturas se envían solo para generar tu respuesta y luego se descartan — no se guardan ni las revisa nadie. Evita adjuntar imágenes que muestren el nombre completo, teléfono u otros datos de identificación de otra persona.",
     clearBtn: "Borrar conversación",
     toolLabels: { bridge: "Momento ideal", vibe: "Nivel de interés", ghost: "¿Se está enfriando?", redflag: "Señales de alerta", boost: "Subidón de confianza" },
+    toolTooltips: {
+      bridge: "Lee la conversación y te dice si es buen momento para pedir una cita o el número.",
+      vibe: "Califica el interés de la otra persona como alto, medio o bajo.",
+      ghost: "Revisa si la conversación se está enfriando y da una línea para revivirla.",
+      redflag: "Detecta manipulación, love-bombing o señales de estafa.",
+      boost: "Un empujón de confianza genuino — funciona con o sin captura."
+    },
     toolNeedsInput: "Adjunta una captura o describe la conversación primero, luego toca la herramienta de nuevo.",
     retryBtn: "Intentar de nuevo",
     copyBtn: "Copiar",
@@ -792,6 +826,10 @@ function applyLang(lang){
   document.querySelectorAll("[data-tool-label]").forEach(el=>{
     const key = el.getAttribute("data-tool-label");
     el.textContent = c.toolLabels[key];
+  });
+  document.querySelectorAll("[data-tooltip-key]").forEach(el=>{
+    const key = el.getAttribute("data-tooltip-key");
+    el.setAttribute("data-tooltip", c.toolTooltips[key]);
   });
 
   document.querySelectorAll("#langToggle button").forEach(btn=>{
