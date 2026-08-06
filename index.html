@@ -453,7 +453,6 @@
     .chip{ font-size:12px; padding:7px 11px; }
   }
 </style>
-<script defer src="https://cdn.vercel-insights.com/v1/script.js"></script>
 </head>
 <body>
 <div class="app">
@@ -670,7 +669,7 @@ function findMatches(text){
     item.keywords.forEach(k=>{ if(t.includes(k)) score += k.split(" ").length; });
     return {item, score};
   }).filter(s=>s.score>0).sort((a,b)=>b.score-a.score);
-  return scored.slice(0,2).map(s=>s.item);
+  return scored.slice(0,1).map(s=>s.item);
 }
 
 function getGender(){
@@ -780,27 +779,61 @@ const previewImg = document.getElementById("previewImg");
 const removePreview = document.getElementById("removePreview");
 
 let attachedImage = null; // { base64, mediaType }
+let conversationHistory = []; // [{role, content}] — real turn-by-turn memory, capped below
+const MAX_HISTORY_TURNS = 4; // 4 user+assistant pairs = 8 entries, keeps cost bounded
 
 attachBtn.addEventListener("click", ()=> fileInput.click());
 
-fileInput.addEventListener("change", ()=>{
+function compressImage(file, maxDimension){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = ()=>{ img.src = reader.result; };
+    reader.onerror = reject;
+    img.onload = ()=>{
+      let { width, height } = img;
+      if(width > maxDimension || height > maxDimension){
+        if(width > height){
+          height = Math.round(height * (maxDimension / width));
+          width = maxDimension;
+        } else {
+          width = Math.round(width * (maxDimension / height));
+          height = maxDimension;
+        }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.75);
+      resolve({ dataUrl, mediaType: "image/jpeg" });
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+fileInput.addEventListener("change", async ()=>{
   const file = fileInput.files[0];
   if(!file) return;
   if(!file.type.startsWith("image/")){
     fileInput.value = "";
     return;
   }
-  const reader = new FileReader();
-  reader.onload = ()=>{
-    const dataUrl = reader.result;
+  // Downscale to a max of 1200px on the long edge — plenty of resolution to
+  // read message text clearly, at a fraction of the vision token cost of a
+  // full-resolution phone screenshot.
+  try{
+    const { dataUrl, mediaType } = await compressImage(file, 1200);
     attachedImage = {
       base64: dataUrl.split(",")[1],
-      mediaType: file.type
+      mediaType
     };
     previewImg.src = dataUrl;
     preview.style.display = "flex";
-  };
-  reader.readAsDataURL(file);
+  }catch(err){
+    fileInput.value = "";
+  }
 });
 
 removePreview.addEventListener("click", ()=>{
@@ -847,6 +880,8 @@ function addMsg(text, who, tag, withCopy){
   return div;
 }
 
+const STATIC_SYSTEM_PROMPT = `You are CUPT, a calm, direct dating and texting coach. Ground your reasoning in well-established relationship psychology where relevant, things like attachment theory, Gottman's research on relationship communication, reciprocity norms, social penetration theory, and behavioral psychology on intermittent reinforcement, explained in plain conversational language, never inventing specific statistics, percentages, or fake study citations. Tailor tone and any relevant dynamics to context without leaning on stereotypes. Answer in 2-3 short sentences, plain conversational language, no bullet lists, no headers. Be concise, don't pad or repeat the point. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. You have access to the earlier turns of this conversation — refer back to specifics the user already told you rather than asking them to repeat themselves.`;
+
 async function askClaude(userText, contextItems, image){
   const contextBlock = contextItems.map(i=>
     `Situation: ${i.title}\nPrinciple: ${i.principle}\nAdvice: ${i.advice}`
@@ -862,21 +897,35 @@ async function askClaude(userText, contextItems, image){
     ? "The user has attached a screenshot of a text conversation. Actually read the visible messages closely and base your read on specifics you can see: who is initiating more, who is asking questions versus only answering, message length and effort balance between the two people, response patterns visible in the thread, and overall warmth versus flatness of tone. Ground your read in real communication patterns (reciprocity of self-disclosure, effort balance) rather than generic reassurance. Reference at most one or two brief, non-identifying specifics from the screenshot to show you actually read it. Never mention or guess at real names, phone numbers, or other identifying details you see in the screenshot."
     : "";
 
-  const systemPrompt = `You are CUPT, a calm, direct dating and texting coach. ${genderLine} ${langLine} ${imageLine} Ground your reasoning in well-established relationship psychology where relevant, things like attachment theory, Gottman's research on relationship communication, reciprocity norms, social penetration theory, and behavioral psychology on intermittent reinforcement, explained in plain conversational language, never inventing specific statistics, percentages, or fake study citations. Tailor tone and any relevant dynamics to that context without leaning on stereotypes. Answer in 2-3 short sentences, plain conversational language, no bullet lists, no headers. Be concise, don't pad or repeat the point. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. Use the reference material below only as grounding for principles, do not quote it, rephrase everything in your own words and tailor it to what the user actually described.
+  const dynamicPrompt = `${genderLine} ${langLine} ${imageLine}
 
-Reference material:
+Reference material for this specific question:
 ${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations, grounded in established relationship psychology research where relevant."}`;
 
   const res = await fetch("/api/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ systemPrompt, userText, image })
+    body: JSON.stringify({
+      staticSystemPrompt: STATIC_SYSTEM_PROMPT,
+      dynamicSystemPrompt: dynamicPrompt,
+      userText,
+      image,
+      history: conversationHistory
+    })
   });
   const data = await res.json();
   if(!data.reply){
     throw new Error(data.error || "No reply");
   }
   return data.reply;
+}
+
+function pushHistory(role, text){
+  conversationHistory.push({ role, content: text });
+  const maxEntries = MAX_HISTORY_TURNS * 2;
+  if(conversationHistory.length > maxEntries){
+    conversationHistory = conversationHistory.slice(-maxEntries);
+  }
 }
 
 async function sendMessage(val, imageForRequest){
@@ -901,6 +950,10 @@ async function sendMessage(val, imageForRequest){
     addMsg(reply, "bot", "CUPT", true);
     incrementUsage();
     updateFooter();
+    // Store a lightweight text-only record for memory — screenshots themselves
+    // are not resent on later turns, keeping cost from compounding.
+    pushHistory("user", val || (getLang() === "es" ? "[adjuntó una captura de conversación]" : "[attached a conversation screenshot]"));
+    pushHistory("assistant", reply);
   }catch(err){
     typing.remove();
     const errDiv = addMsg(COPY[getLang()].error, "bot", "CUPT");
@@ -937,6 +990,7 @@ form.addEventListener("submit", (e)=>{
 
 document.getElementById("clearBtn").addEventListener("click", ()=>{
   thread.innerHTML = "";
+  conversationHistory = [];
   addMsg(COPY[getLang()].cleared, "bot", "CUPT");
 });
 </script>

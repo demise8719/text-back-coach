@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Too many requests, try again later." });
   }
 
-  const { systemPrompt, userText, image } = req.body;
+  const { staticSystemPrompt, dynamicSystemPrompt, userText, image, history } = req.body;
 
   if (!userText && !image) {
     return res.status(400).json({ error: "Missing userText or image" });
@@ -57,6 +57,16 @@ export default async function handler(req, res) {
     text: userText || "Analyze this screenshot of a text conversation."
   });
 
+  // Prior turns are plain text only — screenshots aren't resent on later
+  // turns, so image cost never compounds across a conversation.
+  const priorMessages = Array.isArray(history)
+    ? history
+        .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+        .map((m) => ({ role: m.role, content: m.content }))
+    : [];
+
+  const messages = [...priorMessages, { role: "user", content }];
+
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
@@ -66,10 +76,20 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 220,
-        system: systemPrompt,
-        messages: [{ role: "user", content }]
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: 180,
+        system: [
+          {
+            type: "text",
+            text: staticSystemPrompt || "",
+            cache_control: { type: "ephemeral" }
+          },
+          {
+            type: "text",
+            text: dynamicSystemPrompt || ""
+          }
+        ],
+        messages
       })
     });
 
