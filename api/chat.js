@@ -66,7 +66,7 @@ export default async function handler(req, res) {
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-5",
         max_tokens: 400,
         system: systemPrompt,
         messages: [{ role: "user", content }]
@@ -74,6 +74,14 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: data.error?.message || "Anthropic API request failed",
+        type: data.error?.type || "unknown_error"
+      });
+    }
+
     const textBlock = (data.content || []).find((b) => b.type === "text");
 
     return res.status(200).json({ reply: textBlock ? textBlock.text : null });
