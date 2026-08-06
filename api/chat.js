@@ -35,7 +35,7 @@ export default async function handler(req, res) {
     return res.status(429).json({ error: "Too many requests, try again later." });
   }
 
-  const { staticSystemPrompt, dynamicSystemPrompt, userText, image, history } = req.body;
+  const { staticSystemPrompt, dynamicSystemPrompt, userText, image, history, tool } = req.body;
 
   if (!userText && !image) {
     return res.status(400).json({ error: "Missing userText or image" });
@@ -77,7 +77,7 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: 180,
+        max_tokens: tool ? 260 : 180,
         system: [
           {
             type: "text",

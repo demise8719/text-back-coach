@@ -169,6 +169,33 @@
     margin:18px 0 20px;
     animation:fadeUp .5s ease .05s both;
   }
+  .tools-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:0 0 16px;
+  }
+  .tool-btn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    font-family:var(--font-body);
+    font-size:12px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:9px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .tool-btn:hover{
+    border-color:var(--accent);
+    color:var(--accent);
+    background:var(--accent-tint);
+  }
+  .tool-btn:disabled{ opacity:.5; cursor:default; }
   .thread-bar{
     display:flex;
     justify-content:flex-end;
@@ -490,6 +517,25 @@
 
   <div class="chips" id="chips"></div>
 
+  <div class="tools-row" id="toolsRow">
+    <button type="button" class="tool-btn" data-tool="bridge">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12H20M20 12L15 7M20 12L15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-tool-label="bridge">Bridge to Date</span>
+    </button>
+    <button type="button" class="tool-btn" data-tool="vibe">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14L9 9L13 13L20 6M20 6H14M20 6V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-tool-label="vibe">Vibe Check</span>
+    </button>
+    <button type="button" class="tool-btn" data-tool="ghost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 5 5 5 9V19L8 17L10 19L12 17L14 19L16 17L19 19V9C19 5 16 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/></svg>
+      <span data-tool-label="ghost">Ghosting Check</span>
+    </button>
+    <button type="button" class="tool-btn" data-tool="redflag">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21V4M6 4H16L13.5 8L16 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span data-tool-label="redflag">Red Flags</span>
+    </button>
+  </div>
+
   <div class="thread-bar">
     <button type="button" class="clear-btn" id="clearBtn">
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 7H20M9 7V4H15V7M6 7L7 20H17L18 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -706,6 +752,8 @@ const COPY = {
     error: "Something went wrong reaching the model. Try again in a moment.",
     privacy: "Screenshots are sent only to generate your answer, then discarded — not stored or reviewed by anyone. Avoid attaching images that show someone else's full name, phone number, or other identifying info.",
     clearBtn: "Clear conversation",
+    toolLabels: { bridge: "Bridge to Date", vibe: "Vibe Check", ghost: "Ghosting Check", redflag: "Red Flags" },
+    toolNeedsInput: "Attach a screenshot or describe the conversation first, then tap the tool again.",
     retryBtn: "Try again",
     copyBtn: "Copy",
     copied: "Copied",
@@ -725,6 +773,8 @@ const COPY = {
     error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento.",
     privacy: "Las capturas se envían solo para generar tu respuesta y luego se descartan — no se guardan ni las revisa nadie. Evita adjuntar imágenes que muestren el nombre completo, teléfono u otros datos de identificación de otra persona.",
     clearBtn: "Borrar conversación",
+    toolLabels: { bridge: "Momento ideal", vibe: "Nivel de interés", ghost: "¿Se está enfriando?", redflag: "Señales de alerta" },
+    toolNeedsInput: "Adjunta una captura o describe la conversación primero, luego toca la herramienta de nuevo.",
     retryBtn: "Intentar de nuevo",
     copyBtn: "Copiar",
     copied: "Copiado",
@@ -744,6 +794,10 @@ function applyLang(lang){
   document.getElementById("input").placeholder = c.placeholder;
   document.getElementById("privacyNote").textContent = c.privacy;
   document.getElementById("clearBtnText").textContent = c.clearBtn;
+  document.querySelectorAll("[data-tool-label]").forEach(el=>{
+    const key = el.getAttribute("data-tool-label");
+    el.textContent = c.toolLabels[key];
+  });
 
   chipsWrap.innerHTML = "";
   const chipSet = c.chips[getGender()] || c.chips.man;
@@ -882,7 +936,14 @@ function addMsg(text, who, tag, withCopy){
 
 const STATIC_SYSTEM_PROMPT = `You are CUPT, a calm, direct dating and texting coach. Ground your reasoning in well-established relationship psychology where relevant, things like attachment theory, Gottman's research on relationship communication, reciprocity norms, social penetration theory, and behavioral psychology on intermittent reinforcement, explained in plain conversational language, never inventing specific statistics, percentages, or fake study citations. Tailor tone and any relevant dynamics to context without leaning on stereotypes. Answer in 2-3 short sentences, plain conversational language, no bullet lists, no headers. Be concise, don't pad or repeat the point. Be warm but straightforward, never wishy-washy, give an actual recommendation not just "it depends." Use gender-neutral language for the other person unless the user specifies otherwise. You have access to the earlier turns of this conversation — refer back to specifics the user already told you rather than asking them to repeat themselves.`;
 
-async function askClaude(userText, contextItems, image){
+const TOOL_INSTRUCTIONS = {
+  bridge: `TOOL MODE: Bridge to Date Tracker. Assess whether now is a good moment to ask for a date or phone number, based on visible rapport: sustained back-and-forth, escalating warmth, mutual questions, plans-oriented language. Start your reply with one of: "Good time to ask", "Not quite yet", or "You may have waited too long, re-warm things first" — then 1-2 sentences of reasoning tied to specifics you can see. If "Good time to ask", include one ready-to-send line to actually ask. This is a strong read based on communication patterns, not a certainty — do not claim to know for sure.`,
+  vibe: `TOOL MODE: Vibe Checker. Rate the other person's interest level as High, Medium, or Low based on effort balance, question-asking, warmth, and reciprocity visible in what's shared. Start your reply with the level in caps, then 1-2 sentences of specific reasoning.`,
+  ghost: `TOOL MODE: Ghosting Check. Assess whether this conversation is fading (dropping frequency, warmth, or effort over time) based on what's shared. State plainly whether it looks like it's fading or not. If it is, give exactly one specific, low-pressure revival message tailored to what was actually discussed.`,
+  redflag: `TOOL MODE: Red Flag Detector. Scan for patterns associated with manipulation, love-bombing, or romance-scam behavior: excessive early declarations of love, urgency, requests for money or gift cards or crypto, refusing video calls or in-person meetings, inconsistent personal details, pushing off-platform fast, elaborate sob stories. If concerning patterns appear, name them specifically and plainly. This is pattern-based caution, not proof — recommend independent verification (a video call, a reverse image search) and, if money or scam signs are present, mention reporting to a consumer protection resource like reportfraud.ftc.gov. If nothing concerning is visible, say so plainly without false reassurance.`
+};
+
+async function askClaude(userText, contextItems, image, tool){
   const contextBlock = contextItems.map(i=>
     `Situation: ${i.title}\nPrinciple: ${i.principle}\nAdvice: ${i.advice}`
   ).join("\n\n");
@@ -896,8 +957,11 @@ async function askClaude(userText, contextItems, image){
   const imageLine = image
     ? "The user has attached a screenshot of a text conversation. Actually read the visible messages closely and base your read on specifics you can see: who is initiating more, who is asking questions versus only answering, message length and effort balance between the two people, response patterns visible in the thread, and overall warmth versus flatness of tone. Ground your read in real communication patterns (reciprocity of self-disclosure, effort balance) rather than generic reassurance. Reference at most one or two brief, non-identifying specifics from the screenshot to show you actually read it. Never mention or guess at real names, phone numbers, or other identifying details you see in the screenshot."
     : "";
+  const toolLine = tool && TOOL_INSTRUCTIONS[tool] ? TOOL_INSTRUCTIONS[tool] : "";
 
-  const dynamicPrompt = `${genderLine} ${langLine} ${imageLine}
+  const dynamicPrompt = tool
+    ? `${genderLine} ${langLine} ${imageLine}\n\n${toolLine}`
+    : `${genderLine} ${langLine} ${imageLine}
 
 Reference material for this specific question:
 ${contextBlock || "No specific match found, use general healthy communication and self-respect principles for dating and texting situations, grounded in established relationship psychology research where relevant."}`;
@@ -910,7 +974,8 @@ ${contextBlock || "No specific match found, use general healthy communication an
       dynamicSystemPrompt: dynamicPrompt,
       userText,
       image,
-      history: conversationHistory
+      history: conversationHistory,
+      tool: tool || null
     })
   });
   const data = await res.json();
@@ -928,7 +993,7 @@ function pushHistory(role, text){
   }
 }
 
-async function sendMessage(val, imageForRequest){
+async function sendMessage(val, imageForRequest, tool){
   if(remainingToday() <= 0){
     addMsg(COPY[getLang()].limitHit(DAILY_LIMIT), "bot", "CUPT");
     return;
@@ -936,6 +1001,7 @@ async function sendMessage(val, imageForRequest){
 
   sendBtn.disabled = true;
   attachBtn.disabled = true;
+  document.querySelectorAll(".tool-btn").forEach(b=> b.disabled = true);
 
   const typing = document.createElement("div");
   typing.className = "typing";
@@ -944,8 +1010,8 @@ async function sendMessage(val, imageForRequest){
   thread.scrollTop = thread.scrollHeight;
 
   try{
-    const matches = findMatches(val);
-    const reply = await askClaude(val, matches, imageForRequest);
+    const matches = tool ? [] : findMatches(val);
+    const reply = await askClaude(val, matches, imageForRequest, tool);
     typing.remove();
     addMsg(reply, "bot", "CUPT", true);
     incrementUsage();
@@ -963,13 +1029,14 @@ async function sendMessage(val, imageForRequest){
     retryBtn.textContent = COPY[getLang()].retryBtn;
     retryBtn.onclick = ()=>{
       retryBtn.remove();
-      sendMessage(val, imageForRequest);
+      sendMessage(val, imageForRequest, tool);
     };
     errDiv.appendChild(document.createElement("br"));
     errDiv.appendChild(retryBtn);
   }
   sendBtn.disabled = false;
   attachBtn.disabled = false;
+  document.querySelectorAll(".tool-btn").forEach(b=> b.disabled = false);
 }
 
 form.addEventListener("submit", (e)=>{
@@ -986,6 +1053,29 @@ form.addEventListener("submit", (e)=>{
   preview.style.display = "none";
 
   sendMessage(val, imageForRequest);
+});
+
+document.querySelectorAll(".tool-btn").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    const tool = btn.dataset.tool;
+    const val = input.value.trim();
+    const hasImage = !!attachedImage;
+
+    if(!val && !hasImage){
+      addMsg(COPY[getLang()].toolNeedsInput, "bot", "CUPT");
+      return;
+    }
+
+    const label = COPY[getLang()].toolLabels[tool];
+    addMsg(`[${label}] ` + (val || (getLang() === "es" ? "captura adjunta" : "screenshot attached")), "user");
+    input.value = "";
+    const imageForRequest = attachedImage;
+    attachedImage = null;
+    fileInput.value = "";
+    preview.style.display = "none";
+
+    sendMessage(val, imageForRequest, tool);
+  });
 });
 
 document.getElementById("clearBtn").addEventListener("click", ()=>{
