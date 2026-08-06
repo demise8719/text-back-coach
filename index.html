@@ -6,24 +6,24 @@
 <title>CUPT</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Sora:wght@400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;1,9..144,500;1,9..144,600&family=Karla:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#fbfcfe;
-    --bg-deep:#f3f6fb;
-    --panel:#ffffff;
-    --panel-2:#f3f7fc;
-    --ink:#0d1420;
-    --ink-soft:#4c5b70;
-    --muted:#75839a;
-    --line:#e4eaf2;
-    --accent:#2563eb;
-    --accent-2:#00c2b8;
-    --accent-deep:#1a4bc4;
-    --accent-tint:#2563eb14;
-    --warm:#e08a2b;
-    --glow-1:#dbe9ff;
-    --glow-2:#d7f7f2;
+    --bg:#15161a;
+    --bg-deep:#0d0e11;
+    --panel:#1d1f24;
+    --panel-2:#26282f;
+    --ink:#f3f2f0;
+    --ink-soft:#b9b8b5;
+    --muted:#78777a;
+    --line:#33353c;
+    --accent:#4d7ea8;
+    --accent-2:#9aa7b3;
+    --accent-deep:#3a6488;
+    --accent-tint:#4d7ea81f;
+    --warm:#c9a227;
+    --glow-1:#22303f;
+    --glow-2:#1a1c22;
     --font-display:'Space Grotesk',sans-serif;
     --font-body:'Sora',sans-serif;
   }
@@ -51,9 +51,9 @@
     0%,100%{ transform:translate(0,0); }
     50%{ transform:translate(-3%,2%); }
   }
-  @keyframes radarPing{
-    0%{ transform:scale(1); opacity:.55; }
-    100%{ transform:scale(2.4); opacity:0; }
+  @keyframes needleWobble{
+    0%,100%{ transform:rotate(-7deg); }
+    50%{ transform:rotate(7deg); }
   }
   @keyframes fadeUp{
     from{ opacity:0; transform:translateY(6px); }
@@ -109,35 +109,28 @@
   .brand{
     display:flex;
     align-items:center;
-    gap:13px;
+    gap:11px;
   }
   .mark{
-    width:40px;
-    height:40px;
+    width:34px;
+    height:34px;
     flex-shrink:0;
-    position:relative;
     display:flex;
     align-items:center;
     justify-content:center;
   }
-  .mark .ring{
-    position:absolute;
-    inset:0;
-    border-radius:50%;
-    border:1.5px solid var(--accent);
-    animation:radarPing 2.6s cubic-bezier(.2,.6,.4,1) infinite;
-  }
-  .mark .ring2{ animation-delay:1.3s; border-color:var(--accent-2); }
-  .mark .core{
-    width:14px;
-    height:14px;
-    border-radius:50%;
-    background:linear-gradient(135deg, var(--accent), var(--accent-2));
-    box-shadow:0 0 14px 2px var(--accent-tint);
-    z-index:1;
+  .compass-needle{
+    transform-origin:12px 12px;
+    animation:needleWobble 3.4s ease-in-out infinite;
   }
   .wordmark{
     display:block;
+    font-family:'Unbounded',sans-serif;
+    font-weight:800;
+    font-size:36px;
+    letter-spacing:-.02em;
+    color:var(--ink);
+    line-height:1;
   }
   header{
     margin-bottom:22px;
@@ -164,7 +157,7 @@
   }
   .tools-grid{
     display:grid;
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(5,1fr);
     gap:8px;
     margin:0 0 12px;
   }
@@ -205,6 +198,10 @@
   .tool-icon-warn{
     background:linear-gradient(135deg, #ff6b6b22, transparent);
     color:#e8544f;
+  }
+  .tool-icon-boost{
+    background:linear-gradient(135deg, var(--warm)33, transparent);
+    color:var(--warm);
   }
   .thread-bar{
     display:flex;
@@ -463,12 +460,12 @@
   }
   @media (max-width: 480px){
     body{ padding:22px 14px 32px; }
-    .wordmark{ width:78px; height:34px; }
+    .wordmark{ font-size:27px; }
     .mark{ width:36px; height:36px; }
     header p.sub{ font-size:14px; }
     .thread{ padding:16px; min-height:300px; }
     .msg{ max-width:88%; font-size:14px; }
-    .tools-grid{ grid-template-columns:repeat(2,1fr); }
+    .tools-grid{ grid-template-columns:repeat(3,1fr); }
     .tool-tile{ font-size:11px; }
   }
 </style>
@@ -479,14 +476,16 @@
     <div class="top-row">
       <div class="brand">
         <span class="mark">
-          <span class="ring"></span>
-          <span class="ring ring2"></span>
-          <span class="core"></span>
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="9" stroke="var(--ink-soft)" stroke-width="1.6"/>
+            <g class="compass-needle">
+              <path d="M12 12L16 8L14 14L12 12Z" fill="var(--accent)"/>
+              <path d="M12 12L8 16L10 10L12 12Z" fill="var(--accent-2)"/>
+            </g>
+            <circle cx="12" cy="12" r="1.3" fill="var(--ink)"/>
+          </svg>
         </span>
-        <svg class="wordmark" width="92" height="40" viewBox="0 0 92 40" aria-label="CUPT">
-          <text x="0" y="30" font-family="Fraunces, serif" font-style="italic" font-weight="600" font-size="30" fill="var(--ink)">Cupt</text>
-          <path d="M79 17c-2-4-7-3-7 1c0 4 7 8 7 8s7-4 7-8c0-4-5-5-7-1z" fill="var(--accent)"/>
-        </svg>
+        <span class="wordmark">CUPT</span>
       </div>
       <div class="toggles">
         <div class="gender-toggle" id="genderToggle">
@@ -531,6 +530,12 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21V4M6 4H16L13.5 8L16 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </span>
       <span data-tool-label="redflag">Red Flags</span>
+    </button>
+    <button type="button" class="tool-tile" data-tool="boost">
+      <span class="tool-icon tool-icon-boost">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M13 2L4 14H11L10 22L20 9H13L13 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      </span>
+      <span data-tool-label="boost">Confidence Boost</span>
     </button>
   </div>
 
@@ -746,7 +751,7 @@ const COPY = {
     error: "Something went wrong reaching the model. Try again in a moment.",
     privacy: "Screenshots are sent only to generate your answer, then discarded — not stored or reviewed by anyone. Avoid attaching images that show someone else's full name, phone number, or other identifying info.",
     clearBtn: "Clear conversation",
-    toolLabels: { bridge: "Bridge to Date", vibe: "Vibe Check", ghost: "Ghosting Check", redflag: "Red Flags" },
+    toolLabels: { bridge: "Bridge to Date", vibe: "Vibe Check", ghost: "Ghosting Check", redflag: "Red Flags", boost: "Confidence Boost" },
     toolNeedsInput: "Attach a screenshot or describe the conversation first, then tap the tool again.",
     retryBtn: "Try again",
     copyBtn: "Copy",
@@ -763,7 +768,7 @@ const COPY = {
     error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento.",
     privacy: "Las capturas se envían solo para generar tu respuesta y luego se descartan — no se guardan ni las revisa nadie. Evita adjuntar imágenes que muestren el nombre completo, teléfono u otros datos de identificación de otra persona.",
     clearBtn: "Borrar conversación",
-    toolLabels: { bridge: "Momento ideal", vibe: "Nivel de interés", ghost: "¿Se está enfriando?", redflag: "Señales de alerta" },
+    toolLabels: { bridge: "Momento ideal", vibe: "Nivel de interés", ghost: "¿Se está enfriando?", redflag: "Señales de alerta", boost: "Subidón de confianza" },
     toolNeedsInput: "Adjunta una captura o describe la conversación primero, luego toca la herramienta de nuevo.",
     retryBtn: "Intentar de nuevo",
     copyBtn: "Copiar",
@@ -918,7 +923,8 @@ const TOOL_INSTRUCTIONS = {
   bridge: `TOOL MODE: Bridge to Date Tracker. Assess whether now is a good moment to ask for a date or phone number, based on visible rapport: sustained back-and-forth, escalating warmth, mutual questions, plans-oriented language. Start your reply with one of: "Good time to ask", "Not quite yet", or "You may have waited too long, re-warm things first" — then 1-2 sentences of reasoning tied to specifics you can see. If "Good time to ask", include one ready-to-send line to actually ask. This is a strong read based on communication patterns, not a certainty — do not claim to know for sure.`,
   vibe: `TOOL MODE: Vibe Checker. Rate the other person's interest level as High, Medium, or Low based on effort balance, question-asking, warmth, and reciprocity visible in what's shared. Start your reply with the level in caps, then 1-2 sentences of specific reasoning.`,
   ghost: `TOOL MODE: Ghosting Check. Assess whether this conversation is fading (dropping frequency, warmth, or effort over time) based on what's shared. State plainly whether it looks like it's fading or not. If it is, give exactly one specific, low-pressure revival message tailored to what was actually discussed.`,
-  redflag: `TOOL MODE: Red Flag Detector. Scan for patterns associated with manipulation, love-bombing, or romance-scam behavior: excessive early declarations of love, urgency, requests for money or gift cards or crypto, refusing video calls or in-person meetings, inconsistent personal details, pushing off-platform fast, elaborate sob stories. If concerning patterns appear, name them specifically and plainly. This is pattern-based caution, not proof — recommend independent verification (a video call, a reverse image search) and, if money or scam signs are present, mention reporting to a consumer protection resource like reportfraud.ftc.gov. If nothing concerning is visible, say so plainly without false reassurance.`
+  redflag: `TOOL MODE: Red Flag Detector. Scan for patterns associated with manipulation, love-bombing, or romance-scam behavior: excessive early declarations of love, urgency, requests for money or gift cards or crypto, refusing video calls or in-person meetings, inconsistent personal details, pushing off-platform fast, elaborate sob stories. If concerning patterns appear, name them specifically and plainly. This is pattern-based caution, not proof — recommend independent verification (a video call, a reverse image search) and, if money or scam signs are present, mention reporting to a consumer protection resource like reportfraud.ftc.gov. If nothing concerning is visible, say so plainly without false reassurance.`,
+  boost: `TOOL MODE: Confidence Boost. Ignore situational analysis entirely. Give a short, genuine, energizing pep talk about the user's own value and readiness, grounded in real self-respect rather than empty hype. 2-3 sentences, warm and energizing, not cheesy or over-the-top. If they shared something specific, you can reference it briefly, but this works fine as general encouragement too.`
 };
 
 async function askClaude(userText, contextItems, image, tool){
@@ -1039,13 +1045,18 @@ document.querySelectorAll(".tool-tile").forEach(btn=>{
     const val = input.value.trim();
     const hasImage = !!attachedImage;
 
-    if(!val && !hasImage){
+    if(!val && !hasImage && tool !== "boost"){
       addMsg(COPY[getLang()].toolNeedsInput, "bot", "CUPT");
       return;
     }
 
     const label = COPY[getLang()].toolLabels[tool];
-    addMsg(`[${label}] ` + (val || (getLang() === "es" ? "captura adjunta" : "screenshot attached")), "user");
+    const userLine = val
+      ? `[${label}] ${val}`
+      : hasImage
+        ? `[${label}] ` + (getLang() === "es" ? "captura adjunta" : "screenshot attached")
+        : `[${label}]`;
+    addMsg(userLine, "user");
     input.value = "";
     const imageForRequest = attachedImage;
     attachedImage = null;

@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 
   const { staticSystemPrompt, dynamicSystemPrompt, userText, image, history, tool } = req.body;
 
-  if (!userText && !image) {
+  if (!userText && !image && tool !== "boost") {
     return res.status(400).json({ error: "Missing userText or image" });
   }
 
@@ -54,7 +54,7 @@ export default async function handler(req, res) {
   }
   content.push({
     type: "text",
-    text: userText || "Analyze this screenshot of a text conversation."
+    text: userText || (tool === "boost" ? "Give me a confidence boost." : "Analyze this screenshot of a text conversation.")
   });
 
   // Prior turns are plain text only — screenshots aren't resent on later
