@@ -162,40 +162,50 @@
     line-height:1.6;
     max-width:48ch;
   }
-  .chips{
-    display:flex;
-    flex-wrap:wrap;
+  .tools-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
     gap:8px;
-    margin:18px 0 20px;
-    animation:fadeUp .5s ease .05s both;
+    margin:0 0 12px;
   }
-  .tools-row{
+  .tool-tile{
     display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-    margin:0 0 16px;
-  }
-  .tool-btn{
-    display:flex;
+    flex-direction:column;
     align-items:center;
-    gap:6px;
+    gap:7px;
     border:1px solid var(--line);
     background:var(--panel);
     color:var(--ink-soft);
     font-family:var(--font-body);
-    font-size:12px;
+    font-size:11.5px;
     font-weight:600;
-    padding:8px 12px;
-    border-radius:9px;
+    line-height:1.25;
+    text-align:center;
+    padding:12px 6px;
+    border-radius:12px;
     cursor:pointer;
-    transition:border-color .15s ease, color .15s ease, background .15s ease;
+    transition:border-color .15s ease, transform .12s ease, box-shadow .15s ease;
   }
-  .tool-btn:hover{
+  .tool-tile:hover{
     border-color:var(--accent);
-    color:var(--accent);
-    background:var(--accent-tint);
+    transform:translateY(-2px);
+    box-shadow:0 6px 16px -10px var(--accent);
   }
-  .tool-btn:disabled{ opacity:.5; cursor:default; }
+  .tool-tile:disabled{ opacity:.5; cursor:default; transform:none; box-shadow:none; }
+  .tool-icon{
+    width:32px;
+    height:32px;
+    border-radius:10px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg, var(--accent-tint), transparent);
+    color:var(--accent);
+  }
+  .tool-icon-warn{
+    background:linear-gradient(135deg, #ff6b6b22, transparent);
+    color:#e8544f;
+  }
   .thread-bar{
     display:flex;
     justify-content:flex-end;
@@ -249,24 +259,6 @@
     padding:2px 0;
   }
   .copy-btn:hover{ color:var(--accent); }
-  .chip{
-    border:1px solid var(--line);
-    background:var(--panel);
-    color:var(--ink-soft);
-    font-family:var(--font-body);
-    font-size:12.5px;
-    font-weight:500;
-    padding:8px 13px;
-    border-radius:8px;
-    cursor:pointer;
-    transition:transform .15s ease, border-color .15s ease, background .15s ease, color .15s ease;
-  }
-  .chip:hover{
-    border-color:var(--accent);
-    background:var(--accent-tint);
-    color:var(--ink);
-    transform:translateY(-2px);
-  }
   .thread{
     background:var(--panel);
     border:1px solid var(--line);
@@ -476,8 +468,8 @@
     header p.sub{ font-size:14px; }
     .thread{ padding:16px; min-height:300px; }
     .msg{ max-width:88%; font-size:14px; }
-    .chips{ gap:6px; }
-    .chip{ font-size:12px; padding:7px 11px; }
+    .tools-grid{ grid-template-columns:repeat(2,1fr); }
+    .tool-tile{ font-size:11px; }
   }
 </style>
 </head>
@@ -515,23 +507,29 @@
     <p class="sub" id="subText">Describe the situation &mdash; a text that's gone quiet, a date that ended weird, mixed signals, whatever it is &mdash; and get a straight read on what to do next.</p>
   </header>
 
-  <div class="chips" id="chips"></div>
-
-  <div class="tools-row" id="toolsRow">
-    <button type="button" class="tool-btn" data-tool="bridge">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12H20M20 12L15 7M20 12L15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div class="tools-grid" id="toolsRow">
+    <button type="button" class="tool-tile" data-tool="bridge">
+      <span class="tool-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 12H20M20 12L15 7M20 12L15 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
       <span data-tool-label="bridge">Bridge to Date</span>
     </button>
-    <button type="button" class="tool-btn" data-tool="vibe">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14L9 9L13 13L20 6M20 6H14M20 6V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <button type="button" class="tool-tile" data-tool="vibe">
+      <span class="tool-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 14L9 9L13 13L20 6M20 6H14M20 6V12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
       <span data-tool-label="vibe">Vibe Check</span>
     </button>
-    <button type="button" class="tool-btn" data-tool="ghost">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 5 5 5 9V19L8 17L10 19L12 17L14 19L16 17L19 19V9C19 5 16 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/></svg>
+    <button type="button" class="tool-tile" data-tool="ghost">
+      <span class="tool-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8 2 5 5 5 9V19L8 17L10 19L12 17L14 19L16 17L19 19V9C19 5 16 2 12 2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="9.5" cy="10" r="1" fill="currentColor"/><circle cx="14.5" cy="10" r="1" fill="currentColor"/></svg>
+      </span>
       <span data-tool-label="ghost">Ghosting Check</span>
     </button>
-    <button type="button" class="tool-btn" data-tool="redflag">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21V4M6 4H16L13.5 8L16 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <button type="button" class="tool-tile" data-tool="redflag">
+      <span class="tool-icon tool-icon-warn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 21V4M6 4H16L13.5 8L16 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
       <span data-tool-label="redflag">Red Flags</span>
     </button>
   </div>
@@ -728,7 +726,7 @@ function applyGender(gender){
     btn.classList.toggle("active", btn.dataset.gender === gender);
   });
   localStorage.setItem("cupt_gender", gender);
-  if(typeof applyLang === "function" && typeof chipsWrap !== "undefined"){
+  if(typeof applyLang === "function"){
     applyLang(getLang());
   }
 }
@@ -743,10 +741,6 @@ const COPY = {
     sub: "Describe the situation — or attach a screenshot of the conversation — and get a straight read on what to do next.",
     greeting: "What's going on? Paste the situation or ask a question, like \"they read my text 3 hours ago and haven't replied.\"",
     placeholder: "e.g. they stopped responding after our first date",
-    chips: {
-      man: ["Should I text again?","What does this behavior actually mean?","Am I wasting my time here?","What's my next move?"],
-      woman: ["Why do I keep overthinking this?","Am I reading too much into it?","How do I stop checking my phone?","What's actually going on here?"]
-    },
     limitHit: (n)=> `You've hit today's question limit (${n}). Come back tomorrow, or if this is your app and you want to raise the limit, that's set in the code.`,
     footer: (left, total)=> `CUPT is a prototype. ${left} of ${total} questions left today.`,
     error: "Something went wrong reaching the model. Try again in a moment.",
@@ -764,10 +758,6 @@ const COPY = {
     sub: "Describe la situación — o adjunta una captura de la conversación — y recibe una respuesta directa sobre qué hacer.",
     greeting: "¿Qué está pasando? Cuéntame la situación o haz una pregunta, como \"leyó mi mensaje hace 3 horas y no ha respondido.\"",
     placeholder: "ej. dejó de responder después de la primera cita",
-    chips: {
-      man: ["¿Le escribo otra vez?","¿Qué significa realmente esto?","¿Estoy perdiendo el tiempo?","¿Cuál es mi siguiente paso?"],
-      woman: ["¿Por qué le doy tantas vueltas?","¿Estoy exagerando esto?","¿Cómo dejo de revisar el celular?","¿Qué está pasando en realidad?"]
-    },
     limitHit: (n)=> `Llegaste al límite de preguntas de hoy (${n}). Vuelve mañana, o si esta es tu app y quieres subir el límite, se ajusta en el código.`,
     footer: (left, total)=> `CUPT es un prototipo. Te quedan ${left} de ${total} preguntas hoy.`,
     error: "Algo salió mal al contactar al modelo. Intenta de nuevo en un momento.",
@@ -799,17 +789,6 @@ function applyLang(lang){
     el.textContent = c.toolLabels[key];
   });
 
-  chipsWrap.innerHTML = "";
-  const chipSet = c.chips[getGender()] || c.chips.man;
-  chipSet.forEach(text=>{
-    const b = document.createElement("button");
-    b.className = "chip";
-    b.type = "button";
-    b.textContent = text;
-    b.onclick = ()=>{ input.value = text; form.requestSubmit(); };
-    chipsWrap.appendChild(b);
-  });
-
   document.querySelectorAll("#langToggle button").forEach(btn=>{
     btn.classList.toggle("active", btn.dataset.lang === lang);
   });
@@ -825,7 +804,6 @@ const thread = document.getElementById("thread");
 const form = document.getElementById("form");
 const input = document.getElementById("input");
 const sendBtn = document.getElementById("sendBtn");
-const chipsWrap = document.getElementById("chips");
 const fileInput = document.getElementById("fileInput");
 const attachBtn = document.getElementById("attachBtn");
 const preview = document.getElementById("preview");
@@ -1001,7 +979,7 @@ async function sendMessage(val, imageForRequest, tool){
 
   sendBtn.disabled = true;
   attachBtn.disabled = true;
-  document.querySelectorAll(".tool-btn").forEach(b=> b.disabled = true);
+  document.querySelectorAll(".tool-tile").forEach(b=> b.disabled = true);
 
   const typing = document.createElement("div");
   typing.className = "typing";
@@ -1036,7 +1014,7 @@ async function sendMessage(val, imageForRequest, tool){
   }
   sendBtn.disabled = false;
   attachBtn.disabled = false;
-  document.querySelectorAll(".tool-btn").forEach(b=> b.disabled = false);
+  document.querySelectorAll(".tool-tile").forEach(b=> b.disabled = false);
 }
 
 form.addEventListener("submit", (e)=>{
@@ -1055,7 +1033,7 @@ form.addEventListener("submit", (e)=>{
   sendMessage(val, imageForRequest);
 });
 
-document.querySelectorAll(".tool-btn").forEach(btn=>{
+document.querySelectorAll(".tool-tile").forEach(btn=>{
   btn.addEventListener("click", ()=>{
     const tool = btn.dataset.tool;
     const val = input.value.trim();
